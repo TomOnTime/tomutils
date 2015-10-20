@@ -1,0 +1,91 @@
+#! /bin/bash
+
+# GETOPT_SAMPLE: An example of how to parse command line flags in bash
+
+#PATH=/bin:/usr/bin:/home/adm/bin:$PATH
+#export PATH
+
+function usage
+{
+        echo "
+Usage:
+        $0 [-d] [-b e1] [-t home] name
+
+        Creates an entry in /etc/amd.home for name -> /e1/name
+
+	-d		debug, don't make actual changes
+	-b dir		base directory (default is e1)
+	-t home		which amd table (cust or home)
+	-n 		nopush mode (don't run push-configs when done)
+	-h		this help message
+"
+	exit 1
+}
+
+BASE=e1
+TABLE=home
+DEBUG=false
+PUSH=true
+
+args=`getopt ndb:t:h $*`
+if [ $? != 0 ]
+then
+        usage
+fi
+set -- $args
+for i
+do
+        case "$i"
+        in
+
+                -h)
+                        usage
+                        shift
+                        ;;
+
+                -n)
+			PUSH=false
+			shift
+                        ;;
+
+                -d)
+			DEBUG=true
+			shift
+                        ;;
+
+                -t)
+			TABLE="$2"; shift
+			shift
+                        ;;
+
+                -b)
+			BASE="$2"; shift
+			shift
+			;;
+
+                --)
+                        shift; break;;
+        esac
+done
+
+if $DEBUG ; then echo COUNT=$# ; fi
+
+if [ $# -lt 1 ]; then
+        usage
+fi
+
+NAME=$1
+shift
+
+if $DEBUG ; then
+	echo BASE=$BASE
+	echo TABLE=$TABLE
+	echo DEBUG=$DEBUG
+fi
+
+mkdir -p /$BASE/$NAME
+
+if $PUSH
+then
+	push-configs
+fi

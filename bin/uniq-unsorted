@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+
+# Like the Unix "uniq" program, but works on unsorted data.
+
+awk '!_[$0]++{print}'  """$@"""

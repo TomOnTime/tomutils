@@ -1,0 +1,8 @@
+#!/usr/bin/perl
+
+# Change a file's mac-like line endings to unix-like.
+
+$/ = "\r";
+$\ = "\n";
+
+while (<>) { chomp; print }

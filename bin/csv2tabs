@@ -1,0 +1,38 @@
+#!/usr/bin/perl
+
+# Read in CSV file, output as tab-seperated.
+
+# Typical usage:
+# csv2tabs < foo.csv | tableize -T
+
+use strict;
+
+use Text::CSV;
+my $csv = Text::CSV->new();              # create a new object
+
+# How to use Text::CSV:
+# Initialize:
+#	use Text::CSV;
+#	$csv = Text::CSV->new();              # create a new object
+#Construct:
+#	$status = $csv->combine(@columns);    # combine columns into a string
+#	$line = $csv->string();               # get the combined string
+#Parse:
+#	$status = $csv->parse($line);         # parse a CSV string into fields
+#	@columns = $csv->fields();            # get the parsed fields
+
+my $status;
+my @columns;
+my @cleaned;
+# Read it in, and output it:
+while (<>) {
+	chomp;
+	$status = $csv->parse($_);	# parse a CSV string into fields
+	@columns = $csv->fields();	# get the parsed fields
+
+	#print join("\t", @columns), "\n";
+	@cleaned = map ( m/^'(.*)'$/ ? $1 : $_ , @columns);
+	print join("\t", @cleaned), "\n";
+
+
+}

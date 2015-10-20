@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+
+# Filter that centers text.
+
+$max = 60;
+
+sub clean {
+	local(*str) = @_;
+	$str =~ s/\s/ /g;      # turn whitespace into " "
+	$str =~ s/^ +//g;       # remove space in front
+	$str =~ s/ +$//g;       # remove space in back
+}
+
+sub center {
+	local($line) = @_;
+	local($space, $tmp);
+	$space = ' ' x (($max - 1 - length($line)) / 2);
+	$tmp = $space . $line;
+	return $tmp;
+}
+
+while (<>) {
+	$line = $_;
+	&clean(*line);
+	$line = &center($line) if length($line) < $max;
+	$line =~ s/ +$//g;       # remove space in back
+
+	print $line, "\n";
+}
+

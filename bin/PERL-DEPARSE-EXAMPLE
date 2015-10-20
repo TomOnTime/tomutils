@@ -1,0 +1,3 @@
+# Parse, optimize, and reformat perl.
+
+$ perl -MO=Deparse -e 'if (($x == $b) || ($foo == $bar )) { &thing };'

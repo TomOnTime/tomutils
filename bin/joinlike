@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+#
+prog="joinlike"
+usage="joinlike -nosort [file ..]"
+#
+#	joinlike combines all lines that have the same `first' part
+#	where the first part is defined to be everything to the first whitespace #
+#	The behaviour is somewhat akin to join, but it doesn't assume
+#	the input is sorted, works within a file (or piped into)
+#
+#	NOTE: this will join lines between and within files
+#
+
+dosort=true
+flag=true
+
+while $flag
+do
+	case "$1" in
+	-nosort)	dosort=false;	shift;;
+	-*)		log "$usage";	exit 1;;
+	*)		flag=false
+	esac
+done
+
+if $dosort
+then
+	sort $@
+else
+	cat $@
+fi					|
+awk -v FS="\t" 'BEGIN{prev="";line=""}
+	prev!=$1{if (line !="") print line;prev=$1;line=prev}
+	{sub("^[^	]*[	]*", "")
+		line=line"\t"$0}
+	END{if (line!="") print line}'

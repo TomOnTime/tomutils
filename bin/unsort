@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Unsort data.  Also known as "scramble".
+
+cat """$@""" | awk '{ print rand "\t" $1 }' |sort | cut -d"	" -f2-
