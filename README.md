@@ -65,16 +65,32 @@ I use deparse rarely enough that when I do, I need a reminder of
 how to use it. This is my reminder.
 
 
-#### `PYTHON_main.py`
+#### `PYTHON\_main.py`
 
 When I start a new Python script, I start with this base.
 
 
-#### `PYTHON_main_short.py`
+#### `PYTHON\_main\_short.py`
 
 When I start a new Python script, I start with this base if there
 are no command line flags.  I always regret this because later I
 end up needing command line flags.
+
+
+#### `renamescreencapture.go`
+
+El Capitan (MacOS X 10.11) removed the ability to select the exact
+format of screencapture's filenames.  This utility renames such
+files to be more unix-friendly: No spaces, 24-hour time.
+
+To install:
+
+```
+cd ~src
+go get github.com/TomOnTime/tomutils
+cd github.com/TomOnTime/tomutils/renamescreencapture
+go install
+```
 
 
 #### `tablize`
