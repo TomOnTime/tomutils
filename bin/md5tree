@@ -1,0 +1,50 @@
+#!/usr/local/bin/perl
+
+# md5tree
+#
+# Generate md5 hashes of all files in a directory tree.
+#
+# Warning: Skips filenames with \r or \n in them. All other chars are ok.
+#
+# Typical usage is to compare 2 file systems that should be identical:
+#
+#    md5tree /mnt/data        >/var/tmp/list.orig
+#    md5tree /mnt/data-BACKUP >/var/tmp/list.backup
+#    # NOTE: For these next 2 lines TAB means press the TAB key.
+#    sort  -t'TAB' -k6 </var/tmp/list.backup >/var/tmp/list.backup.sorted
+#    sort  -t'TAB' -k6 </var/tmp/list.orig >/var/tmp/list.orig.sorted
+#    diff /var/tmp/list.orig.sorted /var/tmp/list.backup.sorted
+#
+
+use Digest::MD5;
+use File::Find ();
+
+# Default to "." unless specified on the command line.
+if ($#ARGV == -1) {
+	@DIRS = ( '.' );
+} else {
+	@DIRS = @ARGV;
+}
+
+&File::Find::finddepth(\&wanted, @DIRS);
+
+exit;
+
+sub wanted {
+    (($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_)) &&
+    -f _ &&
+    ((-s _) > 0) &&
+    &doit($_, $File::Find::dir, -s _, $mode, $uid, $gid);
+}
+
+sub doit {
+	my($fn, $dir, $size, $mode, $uid, $gid) = @_;
+
+	return 0 if $fn =~ m/[\r\n]+/;
+
+	open(FILE, "<$fn") or die "Can't open '$dir/$fn': $!";
+	binmode(FILE);
+	print Digest::MD5->new->addfile(*FILE)->hexdigest, "\t$size\t$uid\t$gid\t$mode\t$dir/$fn\n";
+
+	return 0;
+}
