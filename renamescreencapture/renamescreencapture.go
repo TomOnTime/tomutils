@@ -38,6 +38,11 @@ var activate bool
 const scapFilePrefix = "screencapture "
 const scapFilePrefixNew = "screencapture_"
 
+var datePatternsTodo = []string{
+	"2006-01-02 at 3.04.05 PM",
+	"2006-01-02_3.04.05 PM",
+}
+
 func main() {
 	flag.BoolVar(&activate, "y", false, "Actually rename the files")
 	flag.Parse()
@@ -47,16 +52,28 @@ func main() {
 		dir, file := filepath.Split(arg)
 		ext := filepath.Ext(file)
 
-		if !strings.HasPrefix(file, scapFilePrefix) {
-			fmt.Printf("Skipping %v: %s (not a screencapture file)\n", i, arg)
+		if !(strings.HasPrefix(file, scapFilePrefix) || strings.HasPrefix(file, scapFilePrefixNew)) {
+			fmt.Printf("Skipping %v: %s (missing prefix)\n", i, arg)
 			continue
 		}
 
 		datePart := file[len(scapFilePrefix) : len(file)-len(ext)]
 
-		t, err := time.Parse("2006-01-02 at 3.04.05 PM", datePart)
+		t, err := time.Parse("2006-01-02_15.04.05", datePart)
+		if err == nil {
+			fmt.Printf("Skipping %v: %s (already converted)\n", i, arg)
+			continue
+		}
+
+		for _, pattern := range datePatternsTodo {
+			t, err = time.Parse(pattern, datePart)
+			// fmt.Printf("Tried %v got %v %v\n", pattern, err, t)
+			if err == nil {
+				break
+			}
+		}
 		if err != nil {
-			fmt.Printf("Skipping %v: %s (no date found)\n", i, arg)
+			fmt.Printf("Skipping %v: %s (no date found: %v)\n", i, arg, datePart)
 			continue
 		}
 
@@ -65,7 +82,11 @@ func main() {
 
 		fmt.Printf("Renaming %v %v\n", arg, newFile)
 		if activate {
-			os.Rename(arg, newFile)
+			if _, err := os.Stat(newFile); err == nil {
+				fmt.Println("...skipping: name already exists...")
+			} else {
+				os.Rename(arg, newFile)
+			}
 		} else {
 			fmt.Println("...test mode...")
 		}
