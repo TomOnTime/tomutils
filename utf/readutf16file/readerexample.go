@@ -27,6 +27,11 @@ func ReadFileUTF16(filename string) ([]byte, error) {
 	// Make a transformer that is like win16be, but abides by BOM:
 	utf16bom := unicode.BOMOverride(win16be.NewDecoder())
 
+	// This technique is recommended by the W3C for use in HTML 5:
+	// "For compatibility with deployed content, the byte order
+	// mark (also known as BOM) is considered more authoritative
+	// than anything else." http://www.w3.org/TR/encoding/#specification-hooks
+
 	// Make a Reader that uses utf16bom:
 	unicodeReader := transform.NewReader(bytes.NewReader(raw), utf16bom)
 
