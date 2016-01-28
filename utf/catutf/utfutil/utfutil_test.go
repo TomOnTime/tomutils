@@ -1,12 +1,14 @@
-package main_test
+package utfutil_test
 
 import (
 	"io/ioutil"
 	"log"
 	"testing"
+
+	"github.com/TomOnTime/tomutils/utf/example/utfutil"
 )
 
-func TestReader(t *testing.T) {
+func TestReadFile(t *testing.T) {
 
 	expected, err := ioutil.ReadFile("calblur8.htm")
 	if err != nil {
@@ -19,17 +21,19 @@ func TestReader(t *testing.T) {
 	//    done
 	for _, experiment := range []string{
 		"calblur8.htm.UTF-16",
-		"calblur8.htm.UTF-16BE",
 		"calblur8.htm.UTF-16LE",
+		"calblur8.htm.UTF-16BE",
 		"calblur8.htm.UTF-8",
 	} {
-		actual, err := main.ReadFileUTF16(experiment)
+		actual, err := utfutil.ReadFile(experiment)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		if string(expected) != string(actual) {
-			t.Errorf("%v: expected %#v... got %#v...\n", experiment, string(expected)[:4], actual[:4])
+			t.Errorf("FAIL: %v: expected %#v got %#v\n", experiment, string(expected)[:4], actual[:4])
+		} else {
+			t.Log("SUCCESS:", experiment)
 		}
 	}
 
