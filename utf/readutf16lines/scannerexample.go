@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
@@ -10,14 +11,10 @@ import (
 	"golang.org/x/text/transform"
 )
 
-type utfScanner interface {
-	Read(p []byte) (n int, err error)
-}
-
 // Creates a scanner similar to os.Open() but decodes the file as UTF-16.
 // Useful when reading data from MS-Windows systems that generate UTF-16BE
 // files, but will do the right thing if other BOMs are found.
-func NewScannerUTF16(filename string) (utfScanner, error) {
+func NewScannerUTF16(filename string) (io.Reader, error) {
 
 	// Read the file into a []byte:
 	file, err := os.Open(filename)
