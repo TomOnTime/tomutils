@@ -17,7 +17,7 @@ package utfutil
 // will be added to golang.org/x/text/encoding/unicode :-)
 
 // Inspiration: I wrote this after spending half a day trying
-// to figure out how to use the new unicode.UTF16() function.
+// to figure out how to use unicode.BOMOverride.
 // Hopefully this will save other golang newbies from the same.
 
 import (
