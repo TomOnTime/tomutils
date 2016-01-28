@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	data, err := utfutil.ReadFile("inputfile.txt")
+	data, err := utfutil.ReadFile("inputfile.txt", utfutil.HTML5)
 	if err != nil {
 		log.Fatal(err)
 	}
