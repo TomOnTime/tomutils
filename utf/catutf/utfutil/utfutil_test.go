@@ -5,7 +5,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/TomOnTime/tomutils/utf/example/utfutil"
+	"github.com/TomOnTime/tomutils/utf/catutf/utfutil"
 )
 
 func TestReadFile(t *testing.T) {
