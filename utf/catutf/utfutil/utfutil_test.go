@@ -19,21 +19,45 @@ func TestReadFile(t *testing.T) {
 	//    for i in $(iconv  -l|grep -i utf)  ; do
 	//        iconv -f UTF-8 -t $i calblur8.htm > calblur8.htm.$i
 	//    done
-	for _, experiment := range []string{
-		"calblur8.htm.UTF-16",
-		"calblur8.htm.UTF-16LE",
-		"calblur8.htm.UTF-16BE",
-		"calblur8.htm.UTF-8",
+	for _, tst := range []struct {
+		works bool // This combination is expected to work.
+		ume   utfutil.Assumption
+		name  string
+	}{
+		// Assume missing BOM means UTF8
+		{true, utfutil.UTF8, "calblur8.htm.UTF-8"},     // No BOM
+		{true, utfutil.UTF8, "calblur8.htm.UTF-16"},    // BOM=fffe
+		{false, utfutil.UTF8, "calblur8.htm.UTF-16LE"}, // no BOM
+		{false, utfutil.UTF8, "calblur8.htm.UTF-16BE"}, // no BOM
+		// Assume missing BOM means UFT16LE
+		{false, utfutil.UTF16LE, "calblur8.htm.UTF-8"},    // No BOM
+		{true, utfutil.UTF16LE, "calblur8.htm.UTF-16"},    // BOM=fffe
+		{true, utfutil.UTF16LE, "calblur8.htm.UTF-16LE"},  // no BOM
+		{false, utfutil.UTF16LE, "calblur8.htm.UTF-16BE"}, // no BOM
+		// Assume missing BOM means UFT16BE
+		{false, utfutil.UTF16BE, "calblur8.htm.UTF-8"},    // No BOM
+		{true, utfutil.UTF16BE, "calblur8.htm.UTF-16"},    // BOM=fffe
+		{false, utfutil.UTF16BE, "calblur8.htm.UTF-16LE"}, // no BOM
+		{true, utfutil.UTF16BE, "calblur8.htm.UTF-16BE"},  // no BOM
 	} {
-		actual, err := utfutil.ReadFile(experiment)
+
+		actual, err := utfutil.ReadFile(tst.name, tst.ume)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if string(expected) != string(actual) {
-			t.Errorf("FAIL: %v: expected %#v got %#v\n", experiment, string(expected)[:4], actual[:4])
+		if tst.works {
+			if string(expected) == string(actual) {
+				t.Log("SUCCESS:", tst.ume, tst.name)
+			} else {
+				t.Errorf("FAIL: %v/%v: expected %#v got %#v\n", tst.ume, tst.name, string(expected)[:4], actual[:4])
+			}
 		} else {
-			t.Log("SUCCESS:", experiment)
+			if string(expected) != string(actual) {
+				t.Errorf("SUCCESS: %v/%v: failed as expected.", tst.ume, tst.name)
+			} else {
+				t.Errorf("FAILUREish: %v/%v: unexpected success.", tst.ume, tst.name)
+			}
 		}
 	}
 
