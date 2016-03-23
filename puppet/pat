@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Are we running as root?
+if [[ $(id -u) -eq 0 ]]; then
+  SUDO=""
+else
+  echo pat: ACTIVATING SUDO
+  SUDO=sudo
+fi
+
+# if the last arg is '--disable'...
+if [[ "${@:-1}" == '--disable' ]]; then
+  U=$(who am i | cut -d' ' -f1)
+  exec $SUDO puppet agent -t "$@" "Disabled by ${U}"
+fi
+
+exec $SUDO puppet agent -t "$@"
