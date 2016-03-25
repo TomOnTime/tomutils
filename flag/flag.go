@@ -49,30 +49,42 @@
 	Flag parsing stops just before the first non-flag argument
 	("-" is a non-flag argument) or after the terminator "--".
 
-	The pre-defined flag -flagfile accepts a file name which lists
-	flags which are processed next. As if -flagfile=foo.flags is
-	replaced by the flags in the file foo.flags. The file contains
-	key-value pairs, no hyphens. Comments and blank lines are skipped.
+	If not defined otherwise, "-h" and "-help" print the usage message.
+
+	If not defined otherwise, "-flagfile" takes one argument
+	which is a filename. The file is read and processed as a
+	list of flags, processed as if they appeared next on the
+	command line.  The file format is one flag per line.  If
+	the flag takes a value, the line must include a "="
+	("foo=bar", not "foo bar").  Blank lines and lines starting
+	with "#" are skipped.  Lines may not start with a hyphen.
+	Values are not quoted; the value continues to the end of
+	the line; spaces are not trimmed. The file may include
+	flagfile files, but this is not recommended.
 	For example:
 	  i=1
 		# this is a comment
 		s=foo
-  For backwards compatibility, this flag is deactivated if
-	a flag by that name is defined.
+		long=this is a very long string
+		special= this string starts with a space
+
+	DefaultsFromFiles(filename) designates flagfile(s) that is
+	read before any command line flags are parsed, as if
+	--flagfile=filename was on the command line ahead of any
+	other flags. This can be used to set defaults. Multiple
+	filenames can be specified, and will be read in order.
 
 	Integer flags accept 1234, 0664, 0x1234 and may be negative.
 	Boolean flags may be:
 		1, 0, t, f, T, F, true, false, TRUE, FALSE, True, False
 	Duration flags accept any input valid for time.ParseDuration.
 
-	The default set of command-line flags is controlled by
+	The default command-line flags are controlled by
 	top-level functions.  The FlagSet type allows one to define
 	independent sets of flags, such as to implement subcommands
 	in a command-line interface. The methods of FlagSet are
 	analogous to the top-level functions for the command-line
 	flag set.
-
-	One can
 */
 package flag
 
@@ -878,7 +890,7 @@ func (f *FlagSet) parseOne() (bool, error) {
 				}
 				value, f.args = f.args[0], f.args[1:]
 			}
-			addargs, err := f.readFlagFiles(value)
+			addargs, err := f.parseFlagFiles(value)
 			if err != nil {
 				return false, err
 			}
@@ -919,11 +931,11 @@ func (f *FlagSet) parseOne() (bool, error) {
 	return true, nil
 }
 
-func (f *FlagSet) readFirstFiles() ([]string, error) {
-	return f.readFlagFiles(f.firstfiles...)
-}
-
-func (f *FlagSet) readFlagFiles(filelist ...string) ([]string, error) {
+// parseFlagFiles parses one or more flagfiles.  The format is one
+// flag per line, no "-" at the start of the line, if the flag takes
+// a value, the line must include a "=" ("foo=bar", not "foo bar").
+// Blank lines and lines starting with "#" are skipped.
+func (f *FlagSet) parseFlagFiles(filelist ...string) ([]string, error) {
 	var args []string
 	for _, fn := range filelist {
 		file, err := os.Open(fn)
@@ -974,7 +986,7 @@ func (f *FlagSet) readFlagFiles(filelist ...string) ([]string, error) {
 func (f *FlagSet) Parse(arguments []string) error {
 	f.parsed = true
 
-	fileargs, err := f.readFirstFiles()
+	fileargs, err := f.parseFlagFiles(f.args...)
 	if err != nil {
 		switch f.errorHandling {
 		case ContinueOnError:
@@ -1047,16 +1059,16 @@ func (f *FlagSet) Init(name string, errorHandling ErrorHandling) {
 	f.errorHandling = errorHandling
 }
 
-// ReadFlagFiles accumulates flagfiles to be read prior to parsing
+// DefaultsFromFiles accumulates flagfiles to be read prior to parsing
 // the command line.  It may be called multiple times to add more
 // files.
-func (f *FlagSet) ReadFlagFiles(files ...string) {
+func (f *FlagSet) DefaultsFromFiles(files ...string) {
 	f.firstfiles = append(f.firstfiles, files...)
 }
 
-// ReadFlagFiles accumulates flagfiles to be read prior to parsing
+// DefaultsFromFiles accumulates flagfiles to be read prior to parsing
 // the command line.  It may be called multiple times to add more
 // files.
-func ReadFlagFiles(files ...string) {
-	CommandLine.ReadFlagFiles(files...)
+func DefaultsFromFiles(files ...string) {
+	CommandLine.DefaultsFromFiles(files...)
 }
