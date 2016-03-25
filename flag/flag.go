@@ -49,6 +49,17 @@
 	Flag parsing stops just before the first non-flag argument
 	("-" is a non-flag argument) or after the terminator "--".
 
+	The pre-defined flag -flagfile accepts a file name which lists
+	flags which are processed next. As if -flagfile=foo.flags is
+	replaced by the flags in the file foo.flags. The file contains
+	key-value pairs, no hyphens. Comments and blank lines are skipped.
+	For example:
+	  i=1
+		# this is a comment
+		s=foo
+  For backwards compatibility, this flag is deactivated if
+	a flag by that name is defined.
+
 	Integer flags accept 1234, 0664, 0x1234 and may be negative.
 	Boolean flags may be:
 		1, 0, t, f, T, F, true, false, TRUE, FALSE, True, False
@@ -60,10 +71,13 @@
 	in a command-line interface. The methods of FlagSet are
 	analogous to the top-level functions for the command-line
 	flag set.
+
+	One can
 */
 package flag
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -276,6 +290,7 @@ type FlagSet struct {
 	args          []string // arguments after flags
 	errorHandling ErrorHandling
 	output        io.Writer // nil means stderr; use out() accessor
+	firstfiles    []string  // files of flags to read before parsing command line
 }
 
 // A Flag represents the state of a flag.
@@ -855,6 +870,21 @@ func (f *FlagSet) parseOne() (bool, error) {
 			f.usage()
 			return false, ErrHelp
 		}
+		if name == "flagfile" {
+			// It must have a filename, which might be the next argument.
+			if !hasValue {
+				if len(f.args) < 1 {
+					return false, ErrHelp
+				}
+				value, f.args = f.args[0], f.args[1:]
+			}
+			addargs, err := f.readFlagFiles(value)
+			if err != nil {
+				return false, err
+			}
+			f.args = append(addargs, f.args...) // new flags are processed next
+			return true, nil
+		}
 		return false, f.failf("flag provided but not defined: -%s", name)
 	}
 
@@ -889,13 +919,74 @@ func (f *FlagSet) parseOne() (bool, error) {
 	return true, nil
 }
 
+func (f *FlagSet) readFirstFiles() ([]string, error) {
+	return f.readFlagFiles(f.firstfiles...)
+}
+
+func (f *FlagSet) readFlagFiles(filelist ...string) ([]string, error) {
+	var args []string
+	for _, fn := range filelist {
+		file, err := os.Open(fn)
+		if err != nil {
+			switch f.errorHandling {
+			case ContinueOnError:
+				return []string{}, err
+			case ExitOnError:
+				os.Exit(2)
+			case PanicOnError:
+				panic(err)
+			}
+		}
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			t := scanner.Text()
+			if len(t) == 0 || t[0] == '#' {
+				continue // skip blank lines and comments
+			}
+			args = append(args, "-"+scanner.Text())
+		}
+
+		if err := scanner.Err(); err != nil {
+			if err != nil {
+				switch f.errorHandling {
+				case ContinueOnError:
+					return []string{}, err
+				case ExitOnError:
+					os.Exit(2)
+				case PanicOnError:
+					panic(err)
+				}
+			}
+		}
+
+	}
+	return args, nil
+}
+
 // Parse parses flag definitions from the argument list, which should not
 // include the command name.  Must be called after all flags in the FlagSet
 // are defined and before flags are accessed by the program.
 // The return value will be ErrHelp if -help or -h were set but not defined.
+// If -flagfile is not set, this flag will be replaced by the flags found
+// in the named file.
 func (f *FlagSet) Parse(arguments []string) error {
 	f.parsed = true
-	f.args = arguments
+
+	fileargs, err := f.readFirstFiles()
+	if err != nil {
+		switch f.errorHandling {
+		case ContinueOnError:
+			return err
+		case ExitOnError:
+			os.Exit(2)
+		case PanicOnError:
+			panic(err)
+		}
+	}
+
+	f.args = append(fileargs, arguments...)
 	for {
 		seen, err := f.parseOne()
 		if seen {
@@ -954,4 +1045,18 @@ func NewFlagSet(name string, errorHandling ErrorHandling) *FlagSet {
 func (f *FlagSet) Init(name string, errorHandling ErrorHandling) {
 	f.name = name
 	f.errorHandling = errorHandling
+}
+
+// ReadFlagFiles accumulates flagfiles to be read prior to parsing
+// the command line.  It may be called multiple times to add more
+// files.
+func (f *FlagSet) ReadFlagFiles(files ...string) {
+	f.firstfiles = append(f.firstfiles, files...)
+}
+
+// ReadFlagFiles accumulates flagfiles to be read prior to parsing
+// the command line.  It may be called multiple times to add more
+// files.
+func ReadFlagFiles(files ...string) {
+	CommandLine.ReadFlagFiles(files...)
 }
