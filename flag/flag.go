@@ -54,15 +54,15 @@
 	If not defined otherwise, "-flagfile" takes one argument
 	which is a filename. The file is read and processed as a
 	list of flags, processed as if they appeared next on the
-	command line.  The file format is one flag per line.  If
+	command line. The file format is one flag per line. If
 	the flag takes a value, the line must include a "="
-	("foo=bar", not "foo bar").  Blank lines and lines starting
-	with "#" are skipped.  Lines may not start with a hyphen.
+	("foo=bar", not "foo bar"). Blank lines and lines starting
+	with "#" are skipped. Lines may not start with a hyphen.
 	Values are not quoted; the value continues to the end of
 	the line; spaces are not trimmed. The file may include
 	flagfile files, but this is not recommended.
 	For example:
-	  i=1
+		i=1
 		# this is a comment
 		s=foo
 		long=this is a very long string
@@ -70,7 +70,7 @@
 
 	DefaultsFromFiles(filename) designates flagfile(s) that is
 	read before any command line flags are parsed, as if
-	--flagfile=filename was on the command line ahead of any
+	-flagfile=filename was on the command line ahead of any
 	other flags. This can be used to set defaults. Multiple
 	filenames can be specified, and will be read in order.
 
@@ -287,7 +287,7 @@ const (
 	PanicOnError                         // Call panic with a descriptive error.
 )
 
-// A FlagSet represents a set of defined flags.  The zero value of a FlagSet
+// A FlagSet represents a set of defined flags. The zero value of a FlagSet
 // has no name and has ContinueOnError error handling.
 type FlagSet struct {
 	// Usage is the function called when an error occurs while parsing flags.
@@ -302,7 +302,7 @@ type FlagSet struct {
 	args          []string // arguments after flags
 	errorHandling ErrorHandling
 	output        io.Writer // nil means stderr; use out() accessor
-	firstfiles    []string  // files of flags to read before parsing command line
+	firstfiles    []string  // flagfiles to read before parsing command line
 }
 
 // A Flag represents the state of a flag.
@@ -351,7 +351,7 @@ func (f *FlagSet) VisitAll(fn func(*Flag)) {
 }
 
 // VisitAll visits the command-line flags in lexicographical order, calling
-// fn for each.  It visits all flags, even those not set.
+// fn for each. It visits all flags, even those not set.
 func VisitAll(fn func(*Flag)) {
 	CommandLine.VisitAll(fn)
 }
@@ -365,7 +365,7 @@ func (f *FlagSet) Visit(fn func(*Flag)) {
 }
 
 // Visit visits the command-line flags in lexicographical order, calling fn
-// for each.  It visits only those flags that have been set.
+// for each. It visits only those flags that have been set.
 func Visit(fn func(*Flag)) {
 	CommandLine.Visit(fn)
 }
@@ -541,7 +541,7 @@ func (f *FlagSet) NFlag() int { return len(f.actual) }
 // NFlag returns the number of command-line flags that have been set.
 func NFlag() int { return len(CommandLine.actual) }
 
-// Arg returns the i'th argument.  Arg(0) is the first remaining argument
+// Arg returns the i'th argument. Arg(0) is the first remaining argument
 // after flags have been processed. Arg returns an empty string if the
 // requested element does not exist.
 func (f *FlagSet) Arg(i int) string {
@@ -551,7 +551,7 @@ func (f *FlagSet) Arg(i int) string {
 	return f.args[i]
 }
 
-// Arg returns the i'th command-line argument.  Arg(0) is the first remaining argument
+// Arg returns the i'th command-line argument. Arg(0) is the first remaining argument
 // after flags have been processed. Arg returns an empty string if the
 // requested element does not exist.
 func Arg(i int) string {
@@ -931,7 +931,7 @@ func (f *FlagSet) parseOne() (bool, error) {
 	return true, nil
 }
 
-// parseFlagFiles parses one or more flagfiles.  The format is one
+// parseFlagFiles parses one or more flagfiles. The format is one
 // flag per line, no "-" at the start of the line, if the flag takes
 // a value, the line must include a "=" ("foo=bar", not "foo bar").
 // Blank lines and lines starting with "#" are skipped.
@@ -978,7 +978,7 @@ func (f *FlagSet) parseFlagFiles(filelist ...string) ([]string, error) {
 }
 
 // Parse parses flag definitions from the argument list, which should not
-// include the command name.  Must be called after all flags in the FlagSet
+// include the command name. Must be called after all flags in the FlagSet
 // are defined and before flags are accessed by the program.
 // The return value will be ErrHelp if -help or -h were set but not defined.
 // If -flagfile is not set, this flag will be replaced by the flags found
@@ -1060,14 +1060,14 @@ func (f *FlagSet) Init(name string, errorHandling ErrorHandling) {
 }
 
 // DefaultsFromFiles accumulates flagfiles to be read prior to parsing
-// the command line.  It may be called multiple times to add more
+// the command line. It may be called multiple times to add more
 // files.
 func (f *FlagSet) DefaultsFromFiles(files ...string) {
 	f.firstfiles = append(f.firstfiles, files...)
 }
 
 // DefaultsFromFiles accumulates flagfiles to be read prior to parsing
-// the command line.  It may be called multiple times to add more
+// the command line. It may be called multiple times to add more
 // files.
 func DefaultsFromFiles(files ...string) {
 	CommandLine.DefaultsFromFiles(files...)
