@@ -20,6 +20,11 @@ buy a duplicator.  But, since I am cheap, I use a 4-port USB hub
 on a Mac and run this script in 4 different windows.  Use at your
 own risk!
 
+#### `flag`
+
+The modified version of the golang flag module that permits a default file
+and a -flagfile option.  Sadly the go authors rejected it. They don't
+want any changes to the standard library.
 
 #### `GETOPT_SAMPLE`
 
