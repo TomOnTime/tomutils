@@ -15,7 +15,7 @@ func MakeList(n int) []int {
 	r := make([]int, n)
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
-	for i, _ := range r {
+	for i := range r {
 		r[i] = r1.Intn(hirange)
 	}
 	return r
@@ -23,7 +23,7 @@ func MakeList(n int) []int {
 
 func LinearSearch(l []int) int {
 	max := l[0]
-	for n, _ := range l {
+	for n := range l {
 		if n > max {
 			max = n
 		}
