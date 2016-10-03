@@ -211,7 +211,7 @@ var tokens = []struct {
 	{"ORIG_SLIDES", "DELETE"},
 	{"ORIG_YOUTUBE", "DELETE"},
 	{"ONAIR_LINK", "https://plus.google.com/events/cn9jhevr8t2de55e8n4dr1va2rk"},
-	{"EPISODE_YOUTUBE", "COMING SOON"},
+	{"EPISODE_YOUTUBE", "https://www.youtube.com/watch?v=RjE_lQFPhS4"},
 	{"EPISODE_DATE", "Tuesday, June 28, 2016"},
 	{"EPISODE_TIME", "3:30-4:30 p.m. PT"},
 	{"EPISODE_CONVERT", "http://www.timeanddate.com/worldclock/converted.html?iso=20160628T1530&p1=224&p2=179"},
