@@ -58,13 +58,13 @@ M K  *  1 M->K
 N K  *  1 N->K
 O K  *  1 O->K
 R R  *  1 R->REPEATING
-Use the API to make this changes:
-('D', 'J') DEBUG MODE. NOT MAKING CHANGE.
-('E', 'J') DEBUG MODE. NOT MAKING CHANGE.
-('F', 'J') DEBUG MODE. NOT MAKING CHANGE.
-('G', 'J') DEBUG MODE. NOT MAKING CHANGE.
-('H', 'J') DEBUG MODE. NOT MAKING CHANGE.
-('M', 'K') DEBUG MODE. NOT MAKING CHANGE.
-('N', 'K') DEBUG MODE. NOT MAKING CHANGE.
-('O', 'K') DEBUG MODE. NOT MAKING CHANGE.
-('R', 'R') DEBUG MODE. NOT MAKING CHANGE.
+Use the API to make these changes:
+('D', 'J')
+('E', 'J')
+('F', 'J')
+('G', 'J')
+('H', 'J')
+('M', 'K')
+('N', 'K')
+('O', 'K')
+('R', 'R')

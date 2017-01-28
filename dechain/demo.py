@@ -125,12 +125,12 @@ def main():
     print("PASS:", passcount)
     g.print_all()
 
-  print("Use the API to make this changes:")
+  print("Use the API to make these changes:")
   for chain in g.changed_keys():
     if args.real:
-      print(chain, "MAKING CHANGE (not implemented)")
+      print(chain, "(REAL MODE)")  # This code made would make the changes.
     else:
-      print(chain, "DEBUG MODE. NOT MAKING CHANGE.")
+      print(chain)  # Dry-run mode.  Don't make changes.
 
 if __name__ == '__main__':
   sys.exit(main())
