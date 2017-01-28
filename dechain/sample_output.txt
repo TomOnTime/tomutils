@@ -1,0 +1,70 @@
+BEFORE:
+A X     1 A->X
+B Y     1 B->Y
+C Z     1 C->Z
+D E     6 D->E->F->G->H->I->J
+E F     5 E->F->G->H->I->J
+F G     4 F->G->H->I->J
+G H     3 G->H->I->J
+H I     2 H->I->J
+I J     1 I->J
+L K     1 L->K
+M L     2 M->L->K
+N M     3 N->M->L->K
+O N     4 O->N->M->L->K
+R R     1 R->REPEATING
+PASS: 1
+A X     1 A->X
+B Y     1 B->Y
+C Z     1 C->Z
+D F  *  3 D->F->H->J
+E G  *  3 E->G->I->J
+F H  *  2 F->H->J
+G I  *  2 G->I->J
+H J  *  1 H->J
+I J     1 I->J
+L K     1 L->K
+M K  *  1 M->K
+N K  *  1 N->K
+O K  *  1 O->K
+R R  *  1 R->REPEATING
+PASS: 2
+A X     1 A->X
+B Y     1 B->Y
+C Z     1 C->Z
+D H  *  2 D->H->J
+E I  *  2 E->I->J
+F J  *  1 F->J
+G J  *  1 G->J
+H J  *  1 H->J
+I J     1 I->J
+L K     1 L->K
+M K  *  1 M->K
+N K  *  1 N->K
+O K  *  1 O->K
+R R  *  1 R->REPEATING
+PASS: 3
+A X     1 A->X
+B Y     1 B->Y
+C Z     1 C->Z
+D J  *  1 D->J
+E J  *  1 E->J
+F J  *  1 F->J
+G J  *  1 G->J
+H J  *  1 H->J
+I J     1 I->J
+L K     1 L->K
+M K  *  1 M->K
+N K  *  1 N->K
+O K  *  1 O->K
+R R  *  1 R->REPEATING
+Use the API to make this changes:
+('D', 'J') DEBUG MODE. NOT MAKING CHANGE.
+('E', 'J') DEBUG MODE. NOT MAKING CHANGE.
+('F', 'J') DEBUG MODE. NOT MAKING CHANGE.
+('G', 'J') DEBUG MODE. NOT MAKING CHANGE.
+('H', 'J') DEBUG MODE. NOT MAKING CHANGE.
+('M', 'K') DEBUG MODE. NOT MAKING CHANGE.
+('N', 'K') DEBUG MODE. NOT MAKING CHANGE.
+('O', 'K') DEBUG MODE. NOT MAKING CHANGE.
+('R', 'R') DEBUG MODE. NOT MAKING CHANGE.
