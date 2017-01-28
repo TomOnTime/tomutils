@@ -58,6 +58,7 @@ M K  *  1 M->K
 N K  *  1 N->K
 O K  *  1 O->K
 R R  *  1 R->REPEATING
+
 Use the API to make these changes:
 ('D', 'J')
 ('E', 'J')
@@ -68,3 +69,7 @@ Use the API to make these changes:
 ('N', 'K')
 ('O', 'K')
 ('R', 'R')
+
+A human might be able to replace these with wildcards:
+J ['D', 'E', 'F', 'G', 'H', 'I']
+K ['L', 'M', 'N', 'O']

@@ -2,6 +2,8 @@
 
 import sys
 import argparse
+from collections import defaultdict
+
 
 class Chains:
 
@@ -100,6 +102,11 @@ class Chains:
       if it[0] in self.changed:
         yield it
 
+  def reverse_keys(self):
+    d = defaultdict(list)
+    for (k, v) in sorted(self.graph.items()):
+      d[v].append(k)
+    return d
 
 def main():
   # parse cmd line flags.
@@ -125,12 +132,18 @@ def main():
     print("PASS:", passcount)
     g.print_all()
 
-  print("Use the API to make these changes:")
+  print("\nUse the API to make these changes:")
   for chain in g.changed_keys():
     if args.real:
       print(chain, "(REAL MODE)")  # This code made would make the changes.
     else:
       print(chain)  # Dry-run mode.  Don't make changes.
+
+  print("\nA human might be able to replace these with wildcards:")
+  candidates = [(len(l), k, l) for k, l in g.reverse_keys().items() if len(l) > 1]
+  for candidate in reversed(sorted(candidates)):
+    # (List from biggest list to smallest)
+    print(candidate[1], candidate[2])
 
 if __name__ == '__main__':
   sys.exit(main())
