@@ -13,18 +13,40 @@ import (
 	"github.com/yl2chen/cidranger"
 )
 
-type IpInfo struct {
-	ip   net.IP
-	line string
+type RouteEntry struct {
+	Ip   net.IPNet
+	dest string
 }
 
-func readRoutes(f io.Reader, ipList []IpInfo) ([]IpInfo, error) {
+func (re RouteEntry) Network() net.IPNet {
+	return re.Ip
+}
+
+func (re RouteEntry) Dest() string {
+	return re.dest
+}
+
+func readRoutes(f io.Reader, ranger cidranger.Ranger) error {
+	var err error
+	var network1 *net.IPNet
+
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := scanner.Text()
+		fmt.Println("READ line=", line)
 
 		// Parse the line. It should start with an IP address.
 		trim := strings.TrimSpace(line)
+		_, network1, err = net.ParseCIDR(trim)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = ranger.Insert(RouteEntry{*network1, line})
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		i := strings.IndexAny(trim, "/ \t")
 		if i == 0 { // Skip empty lines.
 			continue
@@ -33,31 +55,19 @@ func readRoutes(f io.Reader, ipList []IpInfo) ([]IpInfo, error) {
 			i = len(trim)
 		}
 		if i < 4 { // Too short to be an IP? error
-			return nil, fmt.Errorf("Line has no IP or CIDR: %v", line)
+			return fmt.Errorf("Line has no IP or CIDR: %v", line)
 		}
 		ip := net.ParseIP(trim[0:i])
 		if ip == nil {
-			return nil, fmt.Errorf("Line does not start with valid IP: %v", line)
+			return fmt.Errorf("Line does not start with valid IP: %v", line)
 		}
 
-		ipList = append(ipList, IpInfo{ip, line})
 	}
-
-	return ipList, nil
-}
-
-type RouteEntry struct {
-	Ip          net.IPNet
-	Destination string
-}
-
-func (*RouteEntry) Network() net.IPNet {
-	return RouteEntry.Ip
+	return nil
 }
 
 func main() {
 	flag.Parse()
-	var err error
 
 	// Read all input:
 	if flag.NArg() != 1 {
@@ -79,10 +89,15 @@ func main() {
 		}
 	}
 
+	fmt.Println(ranger)
+
 	// Print it:
-	containingNetworks, err = ranger.ContainingNetworks(net.ParseIP("0.0.0.0"))
+	containingNetworks, err := ranger.ContainingNetworks(net.ParseIP("0.0.0.0"))
+	if err != nil {
+		log.Fatal(err)
+	}
 	for _, x := range containingNetworks {
-		fmt.Println(x.Data())
+		fmt.Println(x.(RouteEntry).Dest())
 	}
 
 	// Read Stdin, look up each item.
