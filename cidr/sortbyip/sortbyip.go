@@ -1,5 +1,25 @@
 package main
 
+/*
+
+sortbyip
+
+Sorts stdin by IP address.
+
+Acceptable input lines:
+
+    IP
+    CIDR
+    IP <whitespace> text
+    CIDR <whitespace> text
+
+  * IP can be an IPv4 or IPv6 address, or an IPv4 or IPv6 CIDR.
+  * Whitespace is trimmed front and back.
+  * The sort is stable.
+  * Sorting two CIDRs with the same network portion but different mask lengths will be sorted sortest to longest network length.
+
+*/
+
 import (
 	"bufio"
 	"bytes"

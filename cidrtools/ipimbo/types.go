@@ -17,5 +17,5 @@ func (b *Imbo) String() string {
 	if b.isIP {
 		return b.addr.String()
 	}
-	return fmt.Sprintf("%s/%s", b.addr, b.prefixlen)
+	return fmt.Sprintf("%s/%d", b.addr, b.prefixlen)
 }
