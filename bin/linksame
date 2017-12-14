@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+
+require "getopts.pl" || die "Couln't load getopts.pl, stopped";
+&Getopts("r");
+$real = 0; $real = 1 if $opt_r;
+
+while (<>) {
+	chomp;
+	($md5, $size, $uid, $gid, $mode, $fn) = split("\t");
+	if (1) {
+		$hash = "$md5:$size:$uid:$gid:$mode";
+	} else {
+		$hash = $md5;
+	}
+	if ($SEEN{$hash}) {
+		$orig = $SEEN{$hash};
+		print "ORIG=$orig\tNEW=$fn\n";
+		if ($real) {
+			unlink $fn;
+			link $orig, $fn || die "unable to link $fn -> $orig";
+			#print "DOIT\n";
+		}
+	} else {
+		$SEEN{$hash} = $fn;
+	}
+}
+

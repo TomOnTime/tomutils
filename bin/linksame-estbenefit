@@ -1,0 +1,20 @@
+#!/usr/bin/perl
+
+while (<>) {
+	chomp;
+	($md5, $size, $g, $u, $m, $fn, @junk) = split("\t");
+	$blocks = int((($size) + 511) / 512);
+	$totalblocks += $blocks;
+	if ($SEEN{$md5}++) {
+		$saved += $blocks;
+		#print "$saved\t$_\n";
+		print "saving $saved blocks (", $saved * 512 / 1024, "k) $fn\n";
+	} else {
+		#print "first $_\n";
+	}
+}
+print "total blocks   : $totalblocks\n";
+print "potential saved: $saved\n";
+print "percent saved  : ", $saved / $totalblocks * 100, "\n";
+
+
