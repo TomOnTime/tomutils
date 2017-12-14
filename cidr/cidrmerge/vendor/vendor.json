@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "++3nlMItW3iUMYdXDOrFjD/79NY=",
+			"path": "github.com/yl2chen/cidranger",
+			"revision": "ebd5c6cd5ecbd85dfb00e7860b0af96e0e95bcdd",
+			"revisionTime": "2017-09-25T18:36:13Z"
+		}
+	],
+	"rootPath": "github.com/TomOnTime/tomutils/cidr/cidrmerge"
+}
