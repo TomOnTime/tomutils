@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-
 	flag.Parse()
 
 	ipimboHandle := ipimbo.New()

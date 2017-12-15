@@ -7,6 +7,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+func Parseline(s string) (Imbo, error) { return parseline(s) }
+
 // parseline parses an input line and returns an Imbo. The line format
 // is one of:
 //     IPADDRESS

@@ -20,10 +20,8 @@ func TestParseline(t *testing.T) {
 		{"::1", Imbo{version: 6, addr: net.ParseIP("::1"), prefixlen: 128, isIP: true, isZeroAddr: true}},
 	}
 
-	//for _, comment := range []string{"", " ", " foo", "\t", "\tbar", " \tbaz"} {
-	for _, comment := range []string{""} {
+	for _, comment := range []string{"", " ", " foo", "\t", "\tbar", " \tbaz"} {
 		for i, tt := range tests {
-			//fmt.Printf("TEST #%d\n", i)
 			x, err := parseline(tt.d + comment)
 			if err != nil {
 				t.Errorf("bad #%d: unexpected err: %v", i, err)

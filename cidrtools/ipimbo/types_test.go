@@ -70,11 +70,106 @@ func TestLess(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		if !tt.b.less(tt.a) {
+		if !tt.b.Less(tt.a) {
 			t.Errorf("test #%d: %s expected to be less than %s", i, tt.a.String(), tt.b.String())
 		}
-		if tt.a.less(tt.b) {
+		if tt.a.Less(tt.b) {
 			t.Errorf("test #%d: %s expected to be less than %s", i, tt.b.String(), tt.a.String())
+		}
+	}
+}
+
+func TestHostAllZerosv(t *testing.T) {
+	tests := []struct {
+		d string
+		e bool
+	}{
+		{"1.2.3.0/24", true},
+		{"1.2.3.1/24", false},
+		{"1.2.3.1/32", true},
+		{"1.2.3.0", true},
+		{"1.2.3.1", true},
+		{"fe80::5054:ff:fef3:3410", true},
+		{"fe80::5054:ff:fef3:3410/56", false},
+		{"fe80:9999::/56", true},
+		{"fe80:9999::1/56", false},
+	}
+
+	for i, tt := range tests {
+		x, err := parseline(tt.d)
+		if err != nil {
+			t.Errorf("bad #%d: unexpected err: %v", i, err)
+		}
+		r := x.HostAllZeros()
+		if r != tt.e {
+			t.Errorf("bad #%d: %s expected: %v got: %v", i, tt.d, tt.e, r)
+		}
+	}
+}
+
+func TestZeroOutHostBits(t *testing.T) {
+	tests := []struct {
+		d string
+		e string
+	}{
+		{"1.2.3.0/24", "1.2.3.0"},
+		{"1.2.3.1/24", "1.2.3.0"},
+		{"1.2.3.1/32", "1.2.3.1"},
+		{"255.255.255.255/17", "255.255.128.0"},
+		{"1.2.3.0", "1.2.3.0"},
+		{"1.2.3.1", "1.2.3.1"},
+		{"fe80::5054:ff:fef3:3410", "fe80::5054:ff:fef3:3410"},
+		{"fe80::5054:ff:fef3:3410/56", "fe80::"},
+		{"fe80:9999::/56", "fe80:9999::"},
+		{"fe80:9999::1/56", "fe80:9999::"},
+	}
+
+	for i, tt := range tests {
+		x, err := parseline(tt.d)
+		if err != nil {
+			t.Errorf("bad #%d: unexpected err: %v", i, err)
+		}
+		r := x.ZeroOutHostBits().String()
+		if r != tt.e {
+			t.Errorf("bad #%d: %s expected: %v got: %v", i, tt.d, tt.e, r)
+		}
+	}
+}
+func TestContains(t *testing.T) {
+	tests := []struct {
+		a, b string
+		e    bool
+	}{
+		{"10.0.0.0/24", "10.10.10.0/24", false},
+		{"10.0.0.0/8", "10.10.10.0/24", true},
+		{"24.24.24.0/24", "24.24.24.24", true},
+		{"1.2.3.0/24", "1.2.3.1", true},
+		{"9.1.1.0/24", "1.1.1.1", false},
+		{"9.1.1.0/24", "9.2.2.2", false},
+		{"255.255.255.0/24", "255.255.254.0/23", false},
+		{"255.255.255.0/24", "255.255.255.0/24", true},
+		{"255.255.255.0/24", "255.255.255.0/25", true},
+		{"255.255.255.0/24", "255.255.255.0/26", true},
+		{"abcd:1234::/32", "abcd:1234:ff::1", true},
+		{"abcd:1234::/32", "2222:1234:ff::1", false},
+		{"ffff:ffff::/32", "ffff:fffe::/31", false},
+		{"ffff:ffff::/32", "ffff:ffff::/32", true},
+		{"ffff:ffff::/32", "ffff:ffff:8::/33", true},
+		{"ffff:ffff::/32", "ffff:ffff:c::/34", true},
+	}
+
+	for i, tt := range tests {
+		pa, err := parseline(tt.a)
+		if err != nil {
+			t.Errorf("bad #%d: unexpected err: %v", i, err)
+		}
+		pb, err := parseline(tt.b)
+		if err != nil {
+			t.Errorf("bad #%d: unexpected err: %v", i, err)
+		}
+		r := pa.Contains(pb)
+		if r != tt.e {
+			t.Errorf("bad #%d: (%s : %s) expected: %v got: %v", i, tt.a, tt.b, tt.e, r)
 		}
 	}
 }
