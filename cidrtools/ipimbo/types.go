@@ -38,25 +38,19 @@ func (b *Imbo) DebugString() string {
 }
 
 func (b *Imbo) EqualIP(a Imbo) bool {
-	fmt.Printf("EqualIP\n%+v\n%+v == ", a, *b)
 	if a.version != b.version {
-		fmt.Println("false (VERSION)")
 		return false
 	}
 	if a.prefixlen != b.prefixlen {
-		fmt.Println("false (PREFIX)")
 		return false
 	}
 	if a.isIP != b.isIP {
-		fmt.Println("false (ISIP)")
 		return false
 	}
 	if a.isZeroAddr != b.isZeroAddr {
-		fmt.Println("false (ZERO)")
 		return false
 	}
 	r := a.addr.Equal(b.addr)
-	fmt.Printf("%v (EQUAL %+v %+v)\n", r, a.addr, b.addr)
 	return r
 }
 

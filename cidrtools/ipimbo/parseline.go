@@ -33,6 +33,7 @@ func parseline(s string) (Imbo, error) {
 	// Try to parse the first field.
 	// Is it a cidr block?
 	ipAddr, ipNet, err := net.ParseCIDR(first)
+	//var x int
 	if err == nil {
 		if ipAddr.To4() != nil {
 			ipb.version = 4
@@ -52,18 +53,18 @@ func parseline(s string) (Imbo, error) {
 	if ip != nil {
 		if ip.To4() != nil {
 			ipb.version = 4
+			ipb.prefixlen = 32
 		} else if ip.To16() != nil {
 			ipb.version = 6
+			ipb.prefixlen = 128
 		} else {
 			return ipb, errors.Errorf("should not happen IP: %s", first)
 		}
 		ipb.addr = ip
-		ipb.prefixlen = 32
 		ipb.isIP = true
-		ipb.isZeroAddr = false
+		ipb.isZeroAddr = true
 		return ipb, nil
 	}
 
 	return ipb, errors.Errorf("invalid: first='%s' line='%v'", first, s)
-
 }

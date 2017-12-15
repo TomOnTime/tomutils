@@ -29,7 +29,7 @@ func run(t *testing.T, name string, a, b string) {
 	}
 
 	if result != b {
-		t.Errorf("test #%d failed:\nINPUT:\n%s\n\nEXPECTED:\n%s\nGOT:\n%s\n", name, a, b, result)
+		t.Errorf("test #%s failed:\nINPUT:\n%s\n\nEXPECTED:\n%s\nGOT:\n%s\n", name, a, b, result)
 	}
 
 }
@@ -99,11 +99,11 @@ fe80::5054:ff:fef3:3410
 10.10.10.10/24
 10.10.10.10/32
 `, `
-10.10.10.0
-10.10.10.0
+10.10.10.0/24
+10.10.10.0/32
 10.10.10.10/24
-10.10.10.10
-107:f2f8::
+10.10.10.10/32
+107:f2f8::/56
 107:f2f8:a9c0::3/24
 107:f2f8:a9c0::3/56
 `)
