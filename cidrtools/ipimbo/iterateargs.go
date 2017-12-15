@@ -1,24 +1,20 @@
-package main
+package ipimbo
 
 import (
 	"flag"
 	"fmt"
-	"ipimbo"
 	"os"
 )
 
-func main() {
-
-	flag.Parse()
-
+// args is a helper function that calls f() on every line of the files
+// on the command line.
+func IterateArgs(ipdb *Handle, f func(imdb Imbo)) {
 	var fh *os.File
 	var err error
 
-	ipdb := ipimbo.New()
-
 	if flag.NArg() == 0 {
-		for v := range ipdb.Parse(os.Stdin) {
-			fmt.Println(v)
+		for v := range ipdb.ReadFile(os.Stdin) {
+			f(v)
 		}
 	} else {
 		for _, fname := range flag.Args() {
@@ -29,8 +25,8 @@ func main() {
 			}
 			defer fh.Close()
 
-			for v := range ipdb.Parse(fh) {
-				fmt.Println(v)
+			for v := range ipdb.ReadFile(fh) {
+				f(v)
 			}
 
 			fh.Close() // Needed?
