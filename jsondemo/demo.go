@@ -73,6 +73,28 @@ func (u *Cranberry) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// UnmarshalJSON implements the solution in http://choly.ca/post/go-json-marshalling/
+func (u *Cranberry) UnmarshalJSON(data []byte) error {
+	type Alias Cranberry
+	temp := &struct {
+		Invisible int `json:"invisible"`
+		*Alias
+	}{
+		Invisible: u.invisible,
+		Alias:     (*Alias)(u),
+	}
+
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	// Can this be improved? It isn't fun to have to copy each field individually.
+	u.invisible = temp.Invisible
+	u.Visible = temp.Visible
+
+	return nil
+}
+
 func main() {
 
 	var out []byte
@@ -124,6 +146,13 @@ func main() {
 		}
 		fmt.Printf(" got=%v\n", string(out))
 		fmt.Println(` exp={"invisible":2,"visible":1}`)
+		// Try unmarshalling too:
+		var n = &Cranberry{}
+		err = json.Unmarshal(out, n)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf(" rev=%+v\n", n)
 	}
 
 }
