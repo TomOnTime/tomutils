@@ -76,6 +76,7 @@ func (u *Cranberry) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON implements the solution in http://choly.ca/post/go-json-marshalling/
 func (u *Cranberry) UnmarshalJSON(data []byte) error {
 	type Alias Cranberry
+	// Each unexported field must be listed here twice, once to define the struct, then to fill it.
 	temp := &struct {
 		Invisible int `json:"invisible"`
 		*Alias
@@ -88,9 +89,9 @@ func (u *Cranberry) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// Can this be improved? It isn't fun to have to copy each field individually.
+	*u = (Cranberry)(*(temp).Alias) // Copy the exported fields.
+	// Each unexported field must be copied individually:
 	u.invisible = temp.Invisible
-	u.Visible = temp.Visible
 
 	return nil
 }
