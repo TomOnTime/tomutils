@@ -87,7 +87,7 @@ func main() {
 	fmt.Printf("      got=%v\n", string(out))
 	fmt.Println(` expected={"visible":1,"invisible":2,"epoch":1521492409}`)
 
-	// Demonstration of how to unmarshal: Unmarshal "out" ([]byte) to n (struct)
+	// Demonstration of how to unmarshal: Unmarshal out ([]byte) to n (struct)
 	fmt.Printf("JSON to struct:\n")
 	var n = &Cranberry{}
 	err = json.Unmarshal(out, n)
