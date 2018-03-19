@@ -81,7 +81,7 @@ func main() {
 	// Everything exported and appears in JSON.
 	{
 		fmt.Printf("Apple:\n")
-		s := Apple{Visible: 1, Invisible: 2}
+		s := &Apple{Visible: 1, Invisible: 2}
 		out, err = json.Marshal(s)
 		if err != nil {
 			panic(err)
@@ -93,7 +93,7 @@ func main() {
 	// One field unexported.  Should not appear in JSON.
 	{
 		fmt.Printf("Banana:\n")
-		s := Banana{Visible: 1, invisible: 2}
+		s := &Banana{Visible: 1, invisible: 2}
 		out, err = json.Marshal(s)
 		if err != nil {
 			panic(err)
@@ -105,25 +105,25 @@ func main() {
 	// fieldA not exported but should appear in output.
 	{
 		fmt.Printf("Test:\n")
-		s := Test{fieldA: "a", FieldB: 2, FieldC: "3"}
+		s := &Test{fieldA: "a", FieldB: 2, FieldC: "3"}
 		out, err = json.Marshal(s)
 		if err != nil {
 			panic(err)
 		}
 		fmt.Printf(" got=%v\n", string(out))
-		fmt.Println(` exp={"FieldA":"1","FieldB":2,"FieldC":"3"}`)
+		fmt.Println(` exp={"fieldA":"a","fieldB":2,"fieldC":"3"}`)
 	}
 
 	// one field not exported but should appear in output.
 	{
 		fmt.Printf("Cranberry:\n")
-		s := Cranberry{Visible: 1, invisible: 2}
+		s := &Cranberry{Visible: 1, invisible: 2}
 		out, err = json.Marshal(s)
 		if err != nil {
 			panic(err)
 		}
 		fmt.Printf(" got=%v\n", string(out))
-		fmt.Println(` exp={"visible":1,"invisible":2}`)
+		fmt.Println(` exp={"invisible":2,"visible":1}`)
 	}
 
 }
