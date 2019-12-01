@@ -119,5 +119,14 @@ func (db *FlowDb) AddFlowFromString(line string) {
 			&Flows{HostIP: logentry.Host},
 		)
 	}
+
+	if len(fs.Items) > 0 {
+		topindex := len(fs.Items) - 1
+		if flow.Path == (fs.Items[topindex].Path + "/") {
+			fs.Items[topindex] = flow
+			return
+		}
+
+	}
 	fs.Items = append(fs.Items, flow)
 }

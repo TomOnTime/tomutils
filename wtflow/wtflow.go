@@ -31,6 +31,8 @@ func report(db *models.FlowDb, domain string) {
 
 	for _, fs := range db.ReportItems {
 		var hostname string
+		var prevurl string
+
 		fmt.Println()
 
 		addrs, err := resolver.LookupAddr(context.Background(), fs.HostIP)
@@ -63,17 +65,23 @@ func report(db *models.FlowDb, domain string) {
 			if referer == "-" {
 				referer = ""
 			}
-			if referer != "" {
-				display_referer = "REF=" + referer
-			} else {
+			if referer == "" {
 				display_referer = ""
+			} else {
+				if prevurl == referer {
+					asterix = "*"
+					display_referer = ""
+				} else {
+					display_referer = "REF=" + referer
+				}
 			}
 
-			fmt.Printf("      %20s %1s https://%v%v     %v\n",
+			url := `https://` + domain + f.Path
+			prevurl = url
+			fmt.Printf("      %20s %1s %v     %v\n",
 				timestr,
 				asterix,
-				domain,
-				f.Path,
+				url,
 				display_referer,
 			)
 		}
