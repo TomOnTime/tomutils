@@ -26,7 +26,7 @@ func (re RouteEntry) Dest() string {
 	return re.dest
 }
 
-func readRoutes(f io.Reader, ranger cidranger.Ranger) error {
+func readAndMerge(f io.Reader, ranger cidranger.Ranger) error {
 	var err error
 	var network1 *net.IPNet
 
@@ -41,6 +41,42 @@ func readRoutes(f io.Reader, ranger cidranger.Ranger) error {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		// Cases:
+
+		// Start:
+		//    10.10.10.0/24
+		// Input:
+		//    11.11.11.0/24
+		// Result:
+		//    10.10.10.0/24
+		//    11.11.11.0/24
+		// Algorithm: ranger.Contains, if false, Insert.
+
+		// Start:
+		//    10.10.10.0/24
+		// Input:
+		//    10.10.10.0/24
+		// Result:
+		//    10.10.10.0/24
+		// Algorithm: ranger.Contains, if true, skip.
+
+		// Start:
+		//    10.10.10.0/24
+		// Input:
+		//    10.10.10.128/30
+		// Result:
+		//    10.10.10.0/24
+		// Algorithm: ranger.Contains, if true, skip.
+
+		// Start:
+		//    10.10.10.0/24
+		//    10.10.20.0/24
+		// Input:
+		//    10.10.0.0/16
+		// Result:
+		//    10.10.0.0/16
+		// Algorithm: ranger.ContainingNetworks: ??
 
 		err = ranger.Insert(RouteEntry{*network1, line})
 		if err != nil {
@@ -84,7 +120,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = readRoutes(fh, ranger)
+		err = readAndMerge(fh, ranger)
 		if err != nil {
 			log.Fatal(err)
 		}
