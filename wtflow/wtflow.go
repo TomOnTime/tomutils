@@ -56,7 +56,9 @@ func report(db *models.FlowDb, domain string) {
 				asterix = ""
 			} else {
 				d := f.Time.Sub(prevtime)
-				timestr = d.String()
+				if d.Hours() < 1 {
+					timestr = d.String()
+				}
 				asterix = ""
 			}
 			prevtime = f.Time

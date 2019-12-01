@@ -16,7 +16,6 @@ package models
 // https://github.com/Songmu/axslogparser/blob/master/axslogparser_test.go
 
 import (
-	"fmt"
 	"log"
 	"net/url"
 	"strings"
@@ -102,7 +101,7 @@ func (db *FlowDb) AddFlowFromString(line string) {
 		usertoken = logentry.User + "@" + logentry.Host
 	}
 
-	fmt.Printf("%v Host=%v Path=%v\n", usertoken, host, path)
+	//fmt.Printf("%v Host=%v Path=%v\n", usertoken, host, path)
 
 	flow := &Flow{
 		Time:    logentry.Time,
