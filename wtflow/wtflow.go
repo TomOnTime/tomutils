@@ -31,7 +31,7 @@ func report(db *models.FlowDb, domain string) {
 
 	for _, fs := range db.ReportItems {
 		var hostname string
-		var prevurl string
+		//var prevurl string
 
 		fmt.Println()
 
@@ -47,45 +47,59 @@ func report(db *models.FlowDb, domain string) {
 		} else {
 			fmt.Printf("%v %v (%v items):\n", fs.HostIP, hostname, len(fs.Items))
 		}
+
+		//for a, b := range fs.Items {
+		//fmt.Printf("%v %v\n", a, b.Referer)
+		//}
+
 		for i, f := range fs.Items {
 			var asterix string
 			var display_referer string
 
+			// The first item is always a date, the others might be
+			// displayed as durations.
 			if i == 0 {
 				timestr = f.Time.Format("2006-01-02 15:04:05")
-				asterix = ""
 			} else {
+				// The 2nd line on we have more to customize.
+				// We can reduce the timestamp to a diration:
 				d := f.Time.Sub(prevtime)
-				if d.Hours() < 1 {
+				if d.Minutes() < 10 {
 					timestr = d.String()
 				}
-				asterix = ""
 			}
-			prevtime = f.Time
 
 			referer := f.Referer
-			if referer == "-" {
+			if referer == "-" || referer == "" {
 				referer = ""
-			}
-			if referer == "" {
 				display_referer = ""
 			} else {
-				if prevurl == referer {
-					asterix = "*"
-					display_referer = ""
-				} else {
-					display_referer = "REF=" + referer
+				display_referer = "REF=" + referer
+
+				for j, x := range fs.Items[0:i] {
+					oldurl := `https://` + domain + x.Path
+					//fmt.Printf("DEBUG: compare %v,%v %q %q\n", i, j, referer, oldurl)
+					if referer == oldurl {
+						asterix = "*"
+						if j-i == -1 {
+							display_referer = ""
+						} else {
+							display_referer = fmt.Sprintf("REF=%v", j-i)
+						}
+						//display_referer = fmt.Sprintf("REF=%v D=%v", j-i, referer)
+						break
+					}
 				}
 			}
 
 			url := `https://` + domain + f.Path
-			prevurl = url
 			fmt.Printf("      %20s %1s %v     %v\n",
 				timestr,
 				asterix,
 				url,
 				display_referer,
 			)
+			prevtime = f.Time
 		}
 	}
 }
@@ -97,9 +111,11 @@ func main() {
 			`/favicon`,
 			`/images/`,
 			`/js/`,
+			// Specific files:
 			`/styles.css`,
 			`/index.json`,
 			`/robots.txt`,
+			`/index.xml`,
 			`/sitemap.xml`,
 		},
 		IgnoreSuffixes: []string{

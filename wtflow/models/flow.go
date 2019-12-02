@@ -88,7 +88,7 @@ func (db *FlowDb) AddFlowFromString(line string) {
 	if err != nil {
 		log.Printf("BAD URI: %v: %v\n", err, line)
 	}
-	host := logentry.Host
+	//host := logentry.Host
 	//path := u.Path
 	path := u.String()
 	if db.SkipPath(path) {
