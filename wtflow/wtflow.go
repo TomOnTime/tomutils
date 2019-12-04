@@ -151,7 +151,7 @@ func main() {
 		}
 	}
 
-	report(db, "www.realpornmeets.com")
+	report(db, os.Getenv("WTFLOW_DOMAIN"))
 	//fmt.Printf("CACHE: %+v\n", stupidcache)
 
 	stupidEnd(CACHEFILE)

@@ -24,6 +24,8 @@ import (
 	"github.com/Songmu/axslogparser"
 )
 
+var MaxUserPause = time.Minute * 20
+
 type Flows struct {
 	HostIP string
 	Items  []*Flow
@@ -113,10 +115,16 @@ func (db *FlowDb) AddFlowFromString(line string) {
 
 	fs, ok := db.LookupUser(usertoken)
 	if !ok {
-		fs = db.AddUser(
-			usertoken,
-			&Flows{HostIP: logentry.Host},
-		)
+		// User not found?  Add it.
+		fs = db.AddUser(usertoken, &Flows{HostIP: logentry.Host})
+	} else {
+		if len(fs.Items) > 0 {
+			// Previous item very old?  Start a new "user".
+			prevtime := fs.Items[len(fs.Items)-1].Time
+			if flow.Time.Sub(prevtime) > MaxUserPause {
+				fs = db.AddUser(usertoken, &Flows{HostIP: logentry.Host})
+			}
+		}
 	}
 
 	// If the previous result was a redirect to this item because
@@ -126,7 +134,6 @@ func (db *FlowDb) AddFlowFromString(line string) {
 		topindex := len(fs.Items) - 1
 		if flow.Path == (fs.Items[topindex].Path + "/") {
 			fs.Items = fs.Items[:len(fs.Items)-1]
-
 		}
 
 	}
