@@ -31,16 +31,20 @@ func report(db *models.FlowDb, domain string) {
 
 	for _, fs := range db.ReportItems {
 		var hostname string
-		//var prevurl string
+		var ok bool
 
 		fmt.Println()
 
-		addrs, err := resolver.LookupAddr(context.Background(), fs.HostIP)
-		if err != nil || len(addrs) == 0 {
-			hostname = fs.HostIP
-		} else {
-			hostname = addrs[0]
+		if hostname, ok = stupidcache[fs.HostIP]; !ok {
+			//fmt.Printf("CACHE MISS: %v %v\n", fs.HostIP, hostname)
+			addrs, err := resolver.LookupAddr(context.Background(), fs.HostIP)
+			if err != nil || len(addrs) == 0 {
+				hostname = fs.HostIP
+			} else {
+				hostname = addrs[0]
+			}
 		}
+		stupidcache[fs.HostIP] = hostname
 
 		if len(fs.Items) == 1 {
 			fmt.Printf("%v %v (1 item):\n", fs.HostIP, hostname)
@@ -124,6 +128,8 @@ func main() {
 		},
 	}
 
+	stupidBegin(CACHEFILE)
+
 	if len(os.Args) < 2 {
 		s := bufio.NewScanner(os.Stdin)
 		for s.Scan() {
@@ -146,4 +152,8 @@ func main() {
 	}
 
 	report(db, "www.realpornmeets.com")
+	//fmt.Printf("CACHE: %+v\n", stupidcache)
+
+	stupidEnd(CACHEFILE)
+
 }
