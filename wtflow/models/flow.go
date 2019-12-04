@@ -119,11 +119,14 @@ func (db *FlowDb) AddFlowFromString(line string) {
 		)
 	}
 
+	// If the previous result was a redirect to this item because
+	// of a missing trailing "/", delete it so we only store the
+	// destination.
 	if len(fs.Items) > 0 {
 		topindex := len(fs.Items) - 1
 		if flow.Path == (fs.Items[topindex].Path + "/") {
-			fs.Items[topindex] = flow
-			return
+			fs.Items = fs.Items[:len(fs.Items)-1]
+
 		}
 
 	}
