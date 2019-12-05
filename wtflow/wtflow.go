@@ -62,13 +62,13 @@ func report(db *models.FlowDb, domain string) {
 
 			// The first item is always a date, the others might be
 			// displayed as durations.
-			if i == 0 {
-				timestr = f.Time.Format("2006-01-02 15:04:05")
-			} else {
+			timestr = f.Time.Format("2006-01-02 15:04:05")
+			if i > 0 {
 				// The 2nd line on we have more to customize.
-				// We can reduce the timestamp to a diration:
+				// We can reduce the timestamp to a direction:
 				d := f.Time.Sub(prevtime)
-				if d.Minutes() < 10 {
+				//fmt.Printf("DELTA: %v  --- %v\n", d.String(), d)
+				if d.Hours() < 1.5 {
 					timestr = d.String()
 				}
 			}
@@ -89,8 +89,8 @@ func report(db *models.FlowDb, domain string) {
 							display_referer = ""
 						} else {
 							display_referer = fmt.Sprintf("REF=%v", j-i)
+							//display_referer = fmt.Sprintf("REF=%v D=%v", j-i, referer)
 						}
-						//display_referer = fmt.Sprintf("REF=%v D=%v", j-i, referer)
 						break
 					}
 				}

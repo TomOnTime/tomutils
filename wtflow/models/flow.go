@@ -24,7 +24,8 @@ import (
 	"github.com/Songmu/axslogparser"
 )
 
-var MaxUserPause = time.Minute * 20
+//var MaxUserPause = time.Minute * 40
+var MaxUserPause = time.Hour * 1
 
 type Flows struct {
 	HostIP string
