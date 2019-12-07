@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/TomOnTime/tomutils/wtflow/models"
@@ -29,11 +30,14 @@ func report(db *models.FlowDb, domain string) {
 
 	var timestr string
 
+	location, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		panic(err)
+	}
+
 	for _, fs := range db.ReportItems {
 		var hostname string
 		var ok bool
-
-		fmt.Println()
 
 		if hostname, ok = stupidcache[fs.HostIP]; !ok {
 			//fmt.Printf("CACHE MISS: %v %v\n", fs.HostIP, hostname)
@@ -45,6 +49,16 @@ func report(db *models.FlowDb, domain string) {
 			}
 		}
 		stupidcache[fs.HostIP] = hostname
+		if strings.HasPrefix(hostname, "crawl") ||
+			strings.HasSuffix(hostname, ".crawl.yahoo.net.") ||
+			strings.HasSuffix(hostname, ".spider.yandex.com.") ||
+			strings.HasSuffix(hostname, ".a.ahrefs.com.") ||
+			strings.HasSuffix(hostname, ".search.qwant.com.") ||
+			strings.HasSuffix(hostname, ".search.msn.com.") {
+			continue
+		}
+
+		fmt.Println()
 
 		if len(fs.Items) == 1 {
 			fmt.Printf("%v %v (1 item):\n", fs.HostIP, hostname)
@@ -62,7 +76,9 @@ func report(db *models.FlowDb, domain string) {
 
 			// The first item is always a date, the others might be
 			// displayed as durations.
-			timestr = f.Time.Format("2006-01-02 15:04:05")
+			//timestr = f.Time.Format("2006-01-02 15:04:05")
+			timestr = f.Time.In(location).Format("2006-01-02 15:04:05")
+
 			if i > 0 {
 				// The 2nd line on we have more to customize.
 				// We can reduce the timestamp to a direction:
@@ -113,14 +129,15 @@ func main() {
 		IgnorePrefixes: []string{
 			`/css/`,
 			`/favicon`,
+			`/fonts/`,
 			`/images/`,
 			`/js/`,
 			// Specific files:
-			`/styles.css`,
 			`/index.json`,
-			`/robots.txt`,
 			`/index.xml`,
+			`/robots.txt`,
 			`/sitemap.xml`,
+			`/styles.css`,
 		},
 		IgnoreSuffixes: []string{
 			`.png`,

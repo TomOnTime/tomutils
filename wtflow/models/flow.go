@@ -86,10 +86,12 @@ func (db *FlowDb) AddFlowFromString(line string) {
 	logentry, err := axslogparser.Parse(line)
 	if err != nil {
 		log.Printf("BAD LINE: %v: %v\n", err, line)
+		return
 	}
 	u, err := url.Parse(logentry.RequestURI)
 	if err != nil {
 		log.Printf("BAD URI: %v: %v\n", err, line)
+		return
 	}
 	//host := logentry.Host
 	//path := u.Path
