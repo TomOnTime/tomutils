@@ -54,7 +54,9 @@ func report(db *models.FlowDb, domain string) {
 			strings.HasSuffix(hostname, ".spider.yandex.com.") ||
 			strings.HasSuffix(hostname, ".a.ahrefs.com.") ||
 			strings.HasSuffix(hostname, ".search.qwant.com.") ||
-			strings.HasSuffix(hostname, ".search.msn.com.") {
+			strings.HasSuffix(hostname, ".search.msn.com.") ||
+			strings.HasSuffix(hostname, ".crawl.sogou.com.") ||
+			hostname == "pool-100-35-82-234.nwrknj.east.verizon.net." {
 			continue
 		}
 
