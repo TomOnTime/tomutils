@@ -14,6 +14,8 @@
 #    sort  -t$'\t' -k6 </var/tmp/list.orig >/var/tmp/list.orig.sorted
 #    diff /var/tmp/list.orig.sorted /var/tmp/list.backup.sorted
 #
+#   NOTE: '\t' doesn't work on csh/ksh and similar shells. Replace it
+#   with a real TAB be typing CTRL-V then pressing the TAB key.
 
 use Digest::MD5;
 use File::Find ();
