@@ -10,9 +10,8 @@
 #
 #    md5tree /mnt/data        >/var/tmp/list.orig
 #    md5tree /mnt/data-BACKUP >/var/tmp/list.backup
-#    # NOTE: For these next 2 lines TAB means press the TAB key.
-#    sort  -t'TAB' -k6 </var/tmp/list.backup >/var/tmp/list.backup.sorted
-#    sort  -t'TAB' -k6 </var/tmp/list.orig >/var/tmp/list.orig.sorted
+#    sort  -t$'\t' -k6 </var/tmp/list.backup >/var/tmp/list.backup.sorted
+#    sort  -t$'\t' -k6 </var/tmp/list.orig >/var/tmp/list.orig.sorted
 #    diff /var/tmp/list.orig.sorted /var/tmp/list.backup.sorted
 #
 
