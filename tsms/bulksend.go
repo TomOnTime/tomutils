@@ -7,33 +7,20 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sfreiberg/gotwilio"
+	"github.com/TomOnTime/tomutils/tsms/basictwilio"
 )
 
 func main() {
 
-	accountSid, ok := os.LookupEnv("TWILIO_SID")
-	if !ok {
-		fmt.Printf("Env variable TWILIO_SID not set. Exiting.\n")
-		os.Exit(1)
-	}
-
-	authToken, ok := os.LookupEnv("TWILIO_KEY")
-	if !ok {
-		fmt.Printf("Env variable TWILIO_KEY not set. Exiting.\n")
-		os.Exit(1)
-	}
-
 	dryRun := flag.Bool("n", false, "dry run mode")
 	flag.Parse()
 
-	if len(flag.Args()) != 3 {
-		fmt.Printf("Three args expected: fromNumber toFile messageFile.\n")
+	if len(flag.Args()) != 2 {
+		fmt.Printf("Three args expected: toFile messageFile.\n")
 		os.Exit(1)
 	}
-	from := flag.Args()[0]
-	toFilename := flag.Args()[1]
-	messageFilename := flag.Args()[2]
+	toFilename := flag.Args()[0]
+	messageFilename := flag.Args()[1]
 
 	toData, err := ioutil.ReadFile(toFilename)
 	if err != nil {
@@ -48,27 +35,13 @@ func main() {
 	}
 	message := strings.TrimSpace(string(messageRaw))
 
-	twilio := gotwilio.NewTwilioClient(accountSid, authToken)
-
 	toItems := strings.Split(string(toData), "\n")
-
 	for _, to := range toItems {
+		to = strings.TrimSpace(to)
 		if to == "" {
 			continue
 		}
-		fmt.Printf("twilio.SendSMS(%q, %q, %q)\n", from, to, message)
-		if !*dryRun {
-			resp, excp, err := twilio.SendSMS(from, to, message, "", "")
-			if err == nil {
-				fmt.Printf("SUCCESS!\n")
-				fmt.Printf("RESPONSE: %v\n", resp)
-				fmt.Printf("EXCEPTION: %v\n", excp)
-			} else {
-				fmt.Printf("FAILURE: %v\n", err)
-				fmt.Printf("RESPONSE: %v\n", resp)
-				fmt.Printf("EXCEPTION: %v\n", excp)
-			}
-		}
+		basictwilio.SendSMS(to, message, *dryRun)
 	}
 
 }
