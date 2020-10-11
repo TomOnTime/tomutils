@@ -99,7 +99,7 @@ func main() {
 
 	// Print it:
 	for _, x := range ipList {
-		fmt.Println(x.String())
+		fmt.Printf("%s\n", x.line)
 	}
 
 }
