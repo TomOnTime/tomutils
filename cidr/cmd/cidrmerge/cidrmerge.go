@@ -15,16 +15,16 @@ import (
 
 type RouteEntry struct {
 	Ip   net.IPNet
-	dest string
+	Dest string
 }
 
 func (re RouteEntry) Network() net.IPNet {
 	return re.Ip
 }
 
-func (re RouteEntry) Dest() string {
-	return re.dest
-}
+//func (re RouteEntry) Dest() string {
+//	return re.dest
+//}
 
 func readRoutes(f io.Reader, ranger cidranger.Ranger) error {
 	var err error
@@ -90,13 +90,13 @@ func main() {
 		}
 	}
 
-	// Print it:
-	containingNetworks, err := ranger.ContainingNetworks(net.ParseIP("10.0.0.0"))
+	entries, err := ranger.CoveredNetworks(*cidranger.AllIPv4) // for IPv4
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, x := range containingNetworks {
-		fmt.Println(x.(RouteEntry).Dest())
+	for i, entry := range entries {
+		n := entry.Network()
+		fmt.Printf("%04d: %+v\n", i, n.String())
 	}
 
 	// Read Stdin, look up each item.
