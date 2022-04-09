@@ -17,40 +17,51 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	//fmt.Printf("INVENYAML:\n%+v\n\n", inventory)
 	// Read the md5.txt file
-	md5db, err := filehash.FromYamlFile("md5.list")
+	md5db, err := filehash.FromFile("md5.list")
 	if err != nil {
 		log.Fatal(err)
 	}
+	//fmt.Printf("MD5DB:\n%v\n\n", md5db)
 
 	// Hydrate inventory with md5hash info:
 
 	// For each item missing from the inventory:
-	missing := missingFromInventory(inventory, md5db)
-	for _, filename := range missing {
+	missingFilenames, missingSigs := missingFromInventory(inventory, md5db)
+	_ = missingSigs
+	fmt.Printf("---\n")
+	for i, filename := range missingFilenames {
+		_ = i
 		// Parse the filename
+		//fmt.Printf("DEBUG: FILENAME: %v\n", filename)
 		inventoryItem := filminventory.ParseFilename(filename)
+		inventoryItem.Signature = missingSigs[i]
 		// Output template yaml
-			y, err := inventoryItem.ToYaml()
-			if err != nil {
-				panic(err)
-			}
+		y, err := inventoryItem.ToYaml()
+		if err != nil {
+			panic(err)
+		}
 		fmt.Printf(string(y))
 	}
 
-	// For each item in the inventory...
+	// // For each item in the inventory...
 	for _, invItem := range inventory {
-		// Generate the intended filename.
+
+		existing := filminventory.ExistingFilename(invItem.Signature, md5db)
 		desired := invItem.DesiredFilename()
+
 		// If the file name is wrong, output rename command.
-		existing := invItem.ExistingFilename()
 		if desired != existing {
-			fmt.Printf(makeRenameCmd(existing, desired))
+			fmt.Println(makeRenameCmd(existing, desired))
+		} else {
+			fmt.Printf("echo %q %q\n", existing, desired)
 		}
 	}
+
 }
 
-func missingFromInventory(inv []filminventory.Film, hashes []filehash.Info) []string {
+func missingFromInventory(inv []filminventory.Film, hashes []filehash.Info) ([]string, []string) {
 	// invSigs  := list of hashes in inv.
 	var invSigs []string
 	for i := range inv {
@@ -60,27 +71,32 @@ func missingFromInventory(inv []filminventory.Film, hashes []filehash.Info) []st
 		}
 	}
 	//sort.Strings(invSigs)
+	//fmt.Printf("DEBUG: invSigs: %v\n", invSigs)
 
 	// hasSigs := list of hashes in hashes.
-	var hasSigs []string
-	for i := range hashes {
-		n := hashes[i].Signature
-		if n != "" {
-			hasSigs = append(hasSigs, n)
-		}
-	}
+	// var hasSigs []string
+	// for i := range hashes {
+	// 	n := hashes[i].Signature
+	// 	if n != "" {
+	// 		hasSigs = append(hasSigs, n)
+	// 	}
+	// }
 	//sort.Strings(hasSigs)
+	//fmt.Printf("DEBUG: hasSigs: %v\n", hasSigs)
 
 	// return items in hashes that are not in inv.
 	var r []string
-	for _, sig := range hasSigs {
-		if !slices.Contains(invSigs, sig) {
-			r = append(r, sig)
+	var s []string
+	for _, h := range hashes {
+		if !slices.Contains(invSigs, h.Signature) {
+			r = append(r, h.Filename)
+			s = append(s, h.Signature)
 		}
 	}
-	return r
+	//fmt.Printf("DEBUG: missing: %v\n", r)
+	return r, s
 }
 
 func makeRenameCmd(wrong, right string) string {
-	return fmt.Sprintf("mv %q %q", wrong, right)
+	return fmt.Sprintf("mv \\\n   %q\\\n   %q", wrong, right)
 }

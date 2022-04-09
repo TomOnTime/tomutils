@@ -2,6 +2,7 @@ package filehash
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strings"
 )
@@ -22,11 +23,12 @@ func FromFile(filename string) (r []Info, err error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		parts := strings.Cut(line, " ")
-		if len(parts) != 2 {
+		before, after, found := strings.Cut(line, " ")
+		if !found {
 			// print "SKIPPING"
+			fmt.Printf("SKIPPING: %v\n", line)
 		} else {
-			r = append(r, &Info{Signature: parts[0], Filename: parts[1]})
+			r = append(r, Info{Signature: before, Filename: after})
 		}
 	}
 
