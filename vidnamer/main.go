@@ -55,7 +55,7 @@ func main() {
 		if desired != existing {
 			fmt.Println(makeRenameCmd(existing, desired))
 		} else {
-			fmt.Printf("echo %q %q\n", existing, desired)
+			fmt.Printf("echo %q\n", existing)
 		}
 	}
 

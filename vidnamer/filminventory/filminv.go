@@ -45,19 +45,21 @@ func ParseFilename(filename string) Film {
 
 	foundFilename := filename
 
+	major := strings.Split(filename, `__`)
+
 	// "extenstion"
 	var ext string
-	for _, e := range []string{".mp4", ".mpeg"} {
+	for _, e := range []string{".mp4", ".mpg", ".mpeg"} {
 		if strings.HasSuffix(filename, e) {
 			filename = strings.TrimSuffix(filename, e)
+			filename = strings.TrimSuffix(filename, ".")
 			filename = strings.TrimSpace(filename)
 			ext = strings.TrimPrefix(e, ".")
 			break
 		}
 	}
 	//fmt.Printf("DEBUG: filename2 = %q\n", filename)
-
-	major := strings.Split(filename, `__`)
+	//fmt.Printf("DEBUG: ext = %q\n", ext)
 
 	// "title"
 	title := major[0]
@@ -82,12 +84,17 @@ func ParseFilename(filename string) Film {
 	// "keywords"
 	if len(major) > 2 {
 		f.Keywords = strings.Split(major[2], "-")
+		for i := range f.Keywords {
+			if f.Keywords[i] == "0fvoiceover" {
+				f.Keywords[i] = "fvoiceover"
+			}
+		}
 	}
 
 	// "designation"
 	if len(major) > 3 {
-		f.Duration = "XX"
 		combined := major[3]
+		combined = strings.TrimSuffix(combined, "."+ext)
 		combined = strings.ToLower(combined)
 		combined = strings.Replace(combined, "_", "-", -1)
 		for _, d := range strings.Split(combined, "-") {
@@ -107,6 +114,8 @@ func ParseFilename(filename string) Film {
 				f.Tags["calm"] = ""
 			} else if d == "pornaddict" {
 				f.Tags["pornaddict"] = ""
+			} else if d == "0fvoiceover" {
+				f.Keywords = append(f.Keywords, "fvoiceover")
 			} else if d == "long" {
 				f.Tags["long"] = ""
 			} else if d == "main" {
@@ -172,21 +181,38 @@ func (f Film) DesiredFilename() string {
 	keywords = strings.Join(f.Keywords, "-")
 
 	// Build the designation
+	var dparts []string
 	if f.Hh != "" {
-		designation = strings.Join([]string{designation, "hh" + f.Hh}, "-")
+		new := "hh" + f.Hh
+		dparts = append(dparts, new)
 	}
 	if f.Room != "" {
-		designation = strings.Join([]string{designation, f.Room}, "-")
+		new := f.Room
+		dparts = append(dparts, new)
 	}
 	if f.Test != "" {
-		designation = strings.Join([]string{designation, f.Test}, "-")
+		new := f.Test
+		dparts = append(dparts, new)
 	}
 	if len(f.Tags) > 0 {
-		t := strings.Join(maps.Keys(f.Tags), "-")
-		designation = strings.Join([]string{designation, t}, "-")
+		new := strings.Join(maps.Keys(f.Tags), "-")
+		dparts = append(dparts, new)
 	}
+	if f.Duration != "" {
+		new := "d" + f.Duration
+		dparts = append(dparts, new)
+	} else {
+		new := "dXX"
+		dparts = append(dparts, new)
+	}
+	designation = strings.Join(dparts, "-")
 
 	ext = f.FileExt
+	fmt.Printf("DEBUG: ext1=%q\n", ext)
+	if ext == "" {
+		ext = "mp4"
+	}
+	fmt.Printf("DEBUG: ext2=%q\n", ext)
 
 	return strings.Join([]string{title, site, keywords, designation}, "__") + "." + ext
 
