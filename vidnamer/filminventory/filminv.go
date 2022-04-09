@@ -208,11 +208,11 @@ func (f Film) DesiredFilename() string {
 	designation = strings.Join(dparts, "-")
 
 	ext = f.FileExt
-	fmt.Printf("DEBUG: ext1=%q\n", ext)
+	//	fmt.Printf("DEBUG: ext1=%q\n", ext)
 	if ext == "" {
 		ext = "mp4"
 	}
-	fmt.Printf("DEBUG: ext2=%q\n", ext)
+	//fmt.Printf("DEBUG: ext2=%q\n", ext)
 
 	return strings.Join([]string{title, site, keywords, designation}, "__") + "." + ext
 
