@@ -24,7 +24,7 @@ func Test_cleanFilename(t *testing.T) {
 	}{
 		{
 			name: "00",
-			args: args{`P G PMV - BIAS____0fvoiceover-foo__hh1_side_d04.mp4`},
+			args: args{`P G PMV - BIAS____fvoiceover-foo__hh1_side_d04.mp4`},
 			want: `P G PMV - BIAS____fvoiceover-foo__hh1-side-d04.mp4`,
 		},
 		{

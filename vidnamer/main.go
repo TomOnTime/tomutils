@@ -3,23 +3,41 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/TomOnTime/tomutils/vidnamer/filehash"
 	"github.com/TomOnTime/tomutils/vidnamer/filminventory"
 	"golang.org/x/exp/slices"
 )
 
+/*
+
+Operations:
+
+Find new MD5 hashs, draft YAML entries.
+
+Find filenames that are wrong based on MD5 hash and whats in YAML.
+
+NOT IMPLEMENTED: Report YAML entries to be deleted:
+- Read YAML
+- Read directory
+- If any filenames are missing, output "delete
+
+*/
+
 func main() {
 	var err error
 
 	// Read the inventory.yaml file
-	inventory, err := filminventory.FromYamlfile("inventory.yaml")
+	inventory, err := filminventory.FromYamlfile("../inventory.yaml")
 	if err != nil {
 		log.Fatal(err)
 	}
 	//fmt.Printf("INVENYAML:\n%+v\n\n", inventory)
+
 	// Read the md5.txt file
-	md5db, err := filehash.FromFile("md5.list")
+	md5db, err := filehash.FromFile("../md5.list")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -27,36 +45,86 @@ func main() {
 
 	// Hydrate inventory with md5hash info:
 
-	// For each item missing from the inventory:
+	// For each item missing from the inventory, output YAML:
 	missingFilenames, missingSigs := missingFromInventory(inventory, md5db)
 	_ = missingSigs
-	fmt.Printf("---\n")
-	for i, filename := range missingFilenames {
-		_ = i
-		// Parse the filename
-		//fmt.Printf("DEBUG: FILENAME: %v\n", filename)
-		inventoryItem := filminventory.ParseFilename(filename)
-		inventoryItem.Signature = missingSigs[i]
-		// Output template yaml
+	if len(missingFilenames) > 0 {
+		f, err := os.OpenFile("../missing.yaml", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Fprintf(f, "---\n")
+		for i, filename := range missingFilenames {
+			_ = i
+			// Parse the filename
+			inventoryItem := filminventory.ParseFilename(filename)
+			inventoryItem.Signature = missingSigs[i]
+			// Output template yaml
+			y, err := inventoryItem.ToYaml()
+			if err != nil {
+				panic(err)
+			}
+			fmt.Fprintf(f, string(y))
+		}
+		if err := f.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	// output NEW YAML
+	f, err := os.OpenFile("../inventory.yaml.NEW", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Fprintf(f, "---\n")
+	for _, inventoryItem := range inventory {
 		y, err := inventoryItem.ToYaml()
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf(string(y))
+		fmt.Fprintf(f, string(y))
+	}
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
 	}
 
-	// // For each item in the inventory...
-	for _, invItem := range inventory {
+	// Audit keywords
+	// Read the list of permitted keywords:
+	permittedKeywords, err := readLines("../keywords.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	invalidKeywords := auditKeywords(inventory, permittedKeywords)
+	if len(invalidKeywords) > 0 {
+		fmt.Printf("INVALID KEYWORDS: %s\n", strings.Join(invalidKeywords, " "))
+	}
 
+	// Audit tags
+	permittedTags, err := readLines("../tags.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	invalidTags := auditTags(inventory, permittedTags)
+	if len(invalidTags) > 0 {
+		fmt.Printf("INVALID TAGS: %s\n", strings.Join(invalidTags, " "))
+	}
+
+	// For each item in the inventory, if the filename is wrong, output
+	// a correction.
+	f, err = os.OpenFile("../fixit.sh", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, invItem := range inventory {
 		existing := filminventory.ExistingFilename(invItem.Signature, md5db)
 		desired := invItem.DesiredFilename()
-
 		// If the file name is wrong, output rename command.
 		if desired != existing {
-			fmt.Println(makeRenameCmd(existing, desired))
-		} else {
-			fmt.Printf("echo %q\n", existing)
+			fmt.Fprintln(f, makeRenameCmd(existing, desired))
 		}
+	}
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
 	}
 
 }
@@ -70,19 +138,6 @@ func missingFromInventory(inv []filminventory.Film, hashes []filehash.Info) ([]s
 			invSigs = append(invSigs, n)
 		}
 	}
-	//sort.Strings(invSigs)
-	//fmt.Printf("DEBUG: invSigs: %v\n", invSigs)
-
-	// hasSigs := list of hashes in hashes.
-	// var hasSigs []string
-	// for i := range hashes {
-	// 	n := hashes[i].Signature
-	// 	if n != "" {
-	// 		hasSigs = append(hasSigs, n)
-	// 	}
-	// }
-	//sort.Strings(hasSigs)
-	//fmt.Printf("DEBUG: hasSigs: %v\n", hasSigs)
 
 	// return items in hashes that are not in inv.
 	var r []string
@@ -98,5 +153,5 @@ func missingFromInventory(inv []filminventory.Film, hashes []filehash.Info) ([]s
 }
 
 func makeRenameCmd(wrong, right string) string {
-	return fmt.Sprintf("mv \\\n   %q\\\n   %q", wrong, right)
+	return fmt.Sprintf("mv -i \\\n   %q\\\n   %q", wrong, right)
 }

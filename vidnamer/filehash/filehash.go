@@ -25,7 +25,6 @@ func FromFile(filename string) (r []Info, err error) {
 		line := scanner.Text()
 		before, after, found := strings.Cut(line, " ")
 		if !found {
-			// print "SKIPPING"
 			fmt.Printf("SKIPPING: %v\n", line)
 		} else {
 			r = append(r, Info{Signature: before, Filename: after})

@@ -1,6 +1,8 @@
 package filminventory
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestFilm_DesiredFilename(t *testing.T) {
 	type fields struct {
@@ -10,10 +12,10 @@ func TestFilm_DesiredFilename(t *testing.T) {
 		Author     string
 		SourceSite string
 		Keywords   []string
-		Hh         string
+		Hh         int
 		Room       string
 		Test       string
-		Duration   string
+		Duration   int
 		FileExt    string
 		Tags       map[string]string
 	}
@@ -28,12 +30,12 @@ func TestFilm_DesiredFilename(t *testing.T) {
 				Title:      "mytitle",
 				SourceSite: "amz",
 				Keywords:   []string{"key1", "key2"},
-				Hh:         "01",
+				Hh:         1,
 				Room:       "main",
-				Test:       "side",
-				Duration:   "04",
+				Test:       "test02",
+				Duration:   4,
 			},
-			want: "mytitle__amz__key1-key2__hh01-main-side-d04.mp4",
+			want: "mytitle__amz__key1-key2__hh1-main-test02-d04.mp4",
 		},
 	}
 	for _, tt := range tests {

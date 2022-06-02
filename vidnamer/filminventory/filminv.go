@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"regexp"
+	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/TomOnTime/tomutils/vidnamer/filehash"
@@ -15,27 +17,26 @@ import (
 type Film struct {
 	Signature  string            `yaml:"md5"` // The md5 has or "" if we don't know it.
 	Filename   string            `yaml:"filename,omitempty"`
+	FileExt    string            `yaml:"filext"`
 	Title      string            `yaml:"title"`
 	Author     string            `yaml:"author,omitempty"`
 	SourceSite string            `yaml:"sourcesite,omitempty"`
-	Keywords   []string          `yaml:"keywords,omitempty"` // Keywords (topics in the video)
-	Hh         string            `yaml:"hh,omitempty"`
+	Keywords   []string          `yaml:"keywords"` // Keywords (topics in the video)
+	Tags       map[string]string `yaml:"tags"`     // Meta tags (describes the video's qualities)
+	Duration   int               `yaml:"duration"`
+	Hh         int               `yaml:"hh,omitempty"`
 	Room       string            `yaml:"room,omitempty"`
-	Test       string            `yaml:"test,omitempty"`
-	Duration   string            `yaml:"duration,omitempty"`
-	FileExt    string            `yaml:"filext,omitempty"`
-	Tags       map[string]string `yaml:"tags,omitempty"` // Meta tags
-	//
+	Test       string            `yaml:"test,omitempty"` // Good test of strength? (level)
 }
 
 func FromYamlfile(filename string) (r []Film, err error) {
 	yamlFile, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("Can't read %q: %w", filename, err)
+		return nil, fmt.Errorf("can't read %q: %w", filename, err)
 	}
 	err = yaml.Unmarshal(yamlFile, &r)
 	if err != nil {
-		return nil, fmt.Errorf("Can't parse %q: %w", filename, err)
+		return nil, fmt.Errorf("can't parse %q: %w", filename, err)
 	}
 	return r, nil
 }
@@ -45,21 +46,21 @@ func ParseFilename(filename string) Film {
 
 	foundFilename := filename
 
-	major := strings.Split(filename, `__`)
-
 	// "extenstion"
 	var ext string
-	for _, e := range []string{".mp4", ".mpg", ".mpeg"} {
-		if strings.HasSuffix(filename, e) {
-			filename = strings.TrimSuffix(filename, e)
-			filename = strings.TrimSuffix(filename, ".")
-			filename = strings.TrimSpace(filename)
-			ext = strings.TrimPrefix(e, ".")
+	for _, e := range []string{"mp4", "mpg", "mpeg", "mov"} {
+		if strings.HasSuffix(filename, "."+e) {
+			filename = strings.TrimSuffix(filename, "."+e)
+			filename = strings.TrimSuffix(filename, ".") // In case filename..mp4
+			filename = strings.TrimSpace(filename)       // in case filename\ .mp4
+			ext = e
 			break
 		}
 	}
 	//fmt.Printf("DEBUG: filename2 = %q\n", filename)
 	//fmt.Printf("DEBUG: ext = %q\n", ext)
+
+	major := strings.Split(filename, `__`)
 
 	// "title"
 	title := major[0]
@@ -73,7 +74,7 @@ func ParseFilename(filename string) Film {
 	site = strings.TrimSpace(site)
 
 	f := Film{
-		//md5hash:    not set by this function
+		//Signature:    not set by this function
 		Filename:   foundFilename,
 		Title:      title,
 		SourceSite: site,
@@ -101,42 +102,30 @@ func ParseFilename(filename string) Film {
 			if d == "" {
 				continue
 			}
-			//fmt.Printf("DEBUG: designation d=%v\n", d)
+
 			if d == "hh1" || d == "h1" {
-				f.Hh = "1"
+				f.Hh = 1
 			} else if d == "hh2" || d == "h2" {
-				f.Hh = "2"
-			} else if d == "finale" {
-				f.Tags["finale"] = ""
-			} else if d == "calm" {
-				f.Tags["calm"] = ""
-			} else if d == "humiliation" {
-				f.Tags["calm"] = ""
-			} else if d == "pornaddict" {
-				f.Tags["pornaddict"] = ""
-			} else if d == "0fvoiceover" {
-				f.Keywords = append(f.Keywords, "fvoiceover")
-			} else if d == "long" {
-				f.Tags["long"] = ""
+				f.Hh = 2
+
 			} else if d == "main" {
 				f.Room = d
 			} else if d == "side" {
 				f.Room = d
 			} else if d == "both" {
 				f.Room = d
+
 			} else if matched, err := regexp.MatchString(`^d\d+`, d); err == nil && matched {
-				//fmt.Printf("DEBUG: matched, err: %v %v\n", matched, err)
-				//} else if strings.HasPrefix(d, "d") { // FIXME: r`^d\d+`
-				f.Duration = d[1:]
-				// f.Test = ""
-				// f.Duration = ""
+				dur, _ := strconv.Atoi(d[1:])
+				f.Duration = dur
+
 			} else {
-				fmt.Printf("WARNING: Unknown designation: %q\n", d)
+				f.Tags[d] = ""
 			}
 		}
 	}
 
-	// If "by X" in the title, split that out as the Author.
+	// TODO(tlim) If "by X" in the title, split that out as the Author.
 	//f.Author = ""
 
 	return f
@@ -147,10 +136,6 @@ func (f Film) ToYaml() ([]byte, error) {
 	return yaml.Marshal(&h)
 }
 
-// func (f Film) ExistingFilename() string {
-// 	return f.Filename
-// }
-//		existing := invItem.ExistingFilename(invItem.Signature, md5db)
 func ExistingFilename(signature string, md5db []filehash.Info) string {
 	for _, m := range md5db {
 		if m.Signature == signature {
@@ -166,11 +151,6 @@ func (f Film) DesiredFilename() string {
 
 	title = f.Title
 	title = strings.TrimSpace(title)
-	//	if strings.HasPrefix(title, `'`) && strings.HasSuffix(title, `'`) {
-	//		fmt.Printf("DEBUG: TITLE1=%q\n", title)
-	//		title = title[1 : len(title)-2]
-	//		fmt.Printf("DEBUG: TITLE2=%q\n", title)
-	//	}
 
 	if f.Author != "" {
 		title = title + " by " + f.Author
@@ -182,28 +162,30 @@ func (f Film) DesiredFilename() string {
 
 	// Build the designation
 	var dparts []string
-	if f.Hh != "" {
-		new := "hh" + f.Hh
-		dparts = append(dparts, new)
+	if f.Hh != 0 {
+		n := fmt.Sprintf("hh%d", f.Hh)
+		dparts = append(dparts, n)
 	}
 	if f.Room != "" {
-		new := f.Room
-		dparts = append(dparts, new)
+		n := f.Room
+		dparts = append(dparts, n)
 	}
 	if f.Test != "" {
-		new := f.Test
-		dparts = append(dparts, new)
+		n := f.Test
+		dparts = append(dparts, n)
 	}
 	if len(f.Tags) > 0 {
-		new := strings.Join(maps.Keys(f.Tags), "-")
-		dparts = append(dparts, new)
+		k := maps.Keys(f.Tags)
+		sort.Strings(k)
+		n := strings.Join(k, "-")
+		dparts = append(dparts, n)
 	}
-	if f.Duration != "" {
-		new := "d" + f.Duration
-		dparts = append(dparts, new)
+	if f.Duration != 0 {
+		n := fmt.Sprintf("d%02d", f.Duration)
+		dparts = append(dparts, n)
 	} else {
-		new := "dXX"
-		dparts = append(dparts, new)
+		n := "dXX"
+		dparts = append(dparts, n)
 	}
 	designation = strings.Join(dparts, "-")
 
