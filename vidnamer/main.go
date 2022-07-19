@@ -64,28 +64,11 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			fmt.Fprintf(f, string(y))
+			fmt.Fprint(f, string(y))
 		}
 		if err := f.Close(); err != nil {
 			log.Fatal(err)
 		}
-	}
-
-	// output NEW YAML
-	f, err := os.OpenFile("../inventory.yaml.NEW", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Fprintf(f, "---\n")
-	for _, inventoryItem := range inventory {
-		y, err := inventoryItem.ToYaml()
-		if err != nil {
-			panic(err)
-		}
-		fmt.Fprintf(f, string(y))
-	}
-	if err := f.Close(); err != nil {
-		log.Fatal(err)
 	}
 
 	// Audit keywords
@@ -111,22 +94,54 @@ func main() {
 
 	// For each item in the inventory, if the filename is wrong, output
 	// a correction.
-	f, err = os.OpenFile("../fixit.sh", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	f, err := os.OpenFile("../fixit.sh", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
 		log.Fatal(err)
 	}
+	var newinventory []filminventory.Film
 	for _, invItem := range inventory {
+		//fmt.Printf("DEBUG: name=%s\n", invItem.Title)
 		existing := filminventory.ExistingFilename(invItem.Signature, md5db)
+		if existing == "" {
+			continue
+		}
 		desired := invItem.DesiredFilename()
 		// If the file name is wrong, output rename command.
 		if desired != existing {
 			fmt.Fprintln(f, makeRenameCmd(existing, desired))
 		}
+		newinventory = append(newinventory, invItem)
 	}
+	inventory = newinventory
 	if err := f.Close(); err != nil {
 		log.Fatal(err)
 	}
 
+	// output NEW YAML
+	err = writeNewInventoryYAML(inventory, "../inventory.yaml.NEW")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
+
+func writeNewInventoryYAML(inventory []filminventory.Film, filename string) error {
+	f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(f, "---\n")
+	for _, inventoryItem := range inventory {
+		y, err := inventoryItem.ToYaml()
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(f, string(y))
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func missingFromInventory(inv []filminventory.Film, hashes []filehash.Info) ([]string, []string) {
