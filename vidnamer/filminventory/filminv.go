@@ -18,9 +18,10 @@ type Film struct {
 	Signature  string            `yaml:"md5"` // The md5 has or "" if we don't know it.
 	Filename   string            `yaml:"filename,omitempty"`
 	FileExt    string            `yaml:"filext"`
+	URL        string            `yaml:"url,omitempty"`
+	SourceSite string            `yaml:"sourcesite,omitempty"`
 	Title      string            `yaml:"title"`
 	Author     string            `yaml:"author,omitempty"`
-	SourceSite string            `yaml:"sourcesite,omitempty"`
 	Keywords   []string          `yaml:"keywords"` // Keywords (topics in the video)
 	Tags       map[string]string `yaml:"tags"`     // Meta tags (describes the video's qualities)
 	Duration   int               `yaml:"duration"`
