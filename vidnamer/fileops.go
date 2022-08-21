@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"os"
+	"strings"
 )
 
 // readLines reads a whole file into memory
@@ -17,7 +18,9 @@ func readLines(path string) ([]string, error) {
 	var lines []string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
+		line := scanner.Text()
+		word, _, _ := strings.Cut(line, " ")
+		lines = append(lines, word)
 	}
 	return lines, scanner.Err()
 }

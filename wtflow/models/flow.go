@@ -24,7 +24,7 @@ import (
 	"github.com/Songmu/axslogparser"
 )
 
-//var MaxUserPause = time.Minute * 40
+// var MaxUserPause = time.Minute * 40
 var MaxUserPause = time.Hour * 1
 
 type Flows struct {
@@ -90,7 +90,7 @@ func (db *FlowDb) AddFlowFromString(line string) {
 	}
 	u, err := url.Parse(logentry.RequestURI)
 	if err != nil {
-		log.Printf("BAD URI: %v: %v\n", err, line)
+		//log.Printf("BAD URI: %v: %v\n", err, line)
 		return
 	}
 	//host := logentry.Host

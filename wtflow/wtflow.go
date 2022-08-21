@@ -166,6 +166,7 @@ func main() {
 			for s.Scan() {
 				// log.Println("line", s.Text())
 				db.AddFlowFromString(s.Text())
+				//db.AddFlowFromCaddyJSON(s.Text())
 			}
 		}
 	}
