@@ -66,10 +66,9 @@ func (db *FlowDb) AddFlowFromCaddyJSON(line string) {
 	integ, decim := math.Modf(data.Ts)
 	ts := time.Unix(int64(integ), int64(decim*(1e9)))
 
-	flow := &Flow{
-		Time:    ts,
-		Path:    data.Request.URI,
-		Referer: strings.Join(data.Request.Headers.Referer, "\t"),
+	path := data.Request.URI
+	if db.SkipPath(path) {
+		return
 	}
 
 	// Guess a unique user:
@@ -78,6 +77,12 @@ func (db *FlowDb) AddFlowFromCaddyJSON(line string) {
 		usertoken = data.Request.RemoteIP
 	} else {
 		usertoken = data.UserID + "@" + data.Request.RemoteIP
+	}
+
+	flow := &Flow{
+		Time:    ts,
+		Path:    path,
+		Referer: strings.Join(data.Request.Headers.Referer, "\t"),
 	}
 
 	// Add it to the database.

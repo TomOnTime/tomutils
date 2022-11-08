@@ -56,7 +56,9 @@ func report(db *models.FlowDb, domain string) {
 			strings.HasSuffix(hostname, ".search.qwant.com.") ||
 			strings.HasSuffix(hostname, ".search.msn.com.") ||
 			strings.HasSuffix(hostname, ".crawl.sogou.com.") ||
-			hostname == "pool-100-35-82-234.nwrknj.east.verizon.net." {
+			hostname == "pool-100-35-82-234.nwrknj.east.verizon.net." ||
+			hostname == "pool-72-68-64-163.nwrknj.fios.verizon.net." ||
+			hostname == "pool-108-5-160-25.nwrknj.east.verizon.net." {
 			continue
 		}
 
@@ -87,7 +89,10 @@ func report(db *models.FlowDb, domain string) {
 				d := f.Time.Sub(prevtime)
 				//fmt.Printf("DELTA: %v  --- %v\n", d.String(), d)
 				if d.Hours() < 1.5 {
-					timestr = d.String()
+					//timestr = d.String()
+					//timestr = fmt.Sprintf("% 5dms", d.Microseconds())
+					timestr = fmt.Sprintf("% .1fs", float64(d.Microseconds())/1000)
+
 				}
 			}
 
@@ -153,7 +158,8 @@ func main() {
 		s := bufio.NewScanner(os.Stdin)
 		for s.Scan() {
 			//log.Println("line", s.Text())
-			db.AddFlowFromString(s.Text())
+			//db.AddFlowFromString(s.Text())
+			db.AddFlowFromCaddyJSON(s.Text())
 		}
 	} else {
 		for _, fn := range os.Args[1:] {
