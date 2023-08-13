@@ -11,6 +11,7 @@ import (
 
 	"github.com/TomOnTime/tomutils/vidnamer/filehash"
 	"golang.org/x/exp/maps"
+	"golang.org/x/exp/utf8string"
 
 	"gopkg.in/yaml.v2"
 )
@@ -224,20 +225,24 @@ func (f Film) DesiredFilename() string {
 		n := fmt.Sprintf("hh%d", f.Hh)
 		dparts = append(dparts, n)
 	}
+	//fmt.Printf("DEBUG: 1 fn=%q dparts=%v\n", f.Title, dparts)
 	if f.Room != "" {
 		n := f.Room
 		dparts = append(dparts, n)
 	}
+	//fmt.Printf("DEBUG: 2 fn=%q dparts=%v\n", f.Title, dparts)
 	if f.Test != "" {
 		n := f.Test
 		dparts = append(dparts, n)
 	}
+	//fmt.Printf("DEBUG: 3 fn=%q dparts=%v\n", f.Title, dparts)
 	if len(f.Tags) > 0 {
 		k := maps.Keys(f.Tags)
 		sort.Strings(k)
 		n := strings.Join(k, "-")
 		dparts = append(dparts, n)
 	}
+	//fmt.Printf("DEBUG: 4 fn=%q dparts=%v\n", f.Title, dparts)
 	if f.Duration != 0 {
 		n := fmt.Sprintf("d%02d", f.Duration)
 		dparts = append(dparts, n)
@@ -245,6 +250,8 @@ func (f Film) DesiredFilename() string {
 		n := "dXX"
 		dparts = append(dparts, n)
 	}
+
+	//fmt.Printf("DEBUG: FINAL fn=%q dparts=%v\n", f.Title, dparts)
 	designation = strings.Join(dparts, "-")
 
 	ext = f.FileExt
@@ -254,6 +261,10 @@ func (f Film) DesiredFilename() string {
 	}
 	//fmt.Printf("DEBUG: ext2=%q\n", ext)
 
-	return strings.Join([]string{title, site, keywords, designation}, "__") + "." + ext
+	final := strings.Join([]string{title, site, keywords, designation}, "__") + "." + ext
+	if !utf8string.NewString(final).IsASCII() {
+		fmt.Printf("# WARNING: Non-ASCII string: %q\n", final)
+	}
+	return final
 
 }

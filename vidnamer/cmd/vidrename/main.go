@@ -35,12 +35,13 @@ func main() {
 	for _, client := range clients {
 		film := filminventory.CsvToFilm(*client)
 
-		//airFilename := client.Filename
 		sigFilename := sigDB.SigToFilename(client.Sha256)
 
 		existing := sigFilename
 		desired := film.DesiredFilename()
-		if existing != desired {
+		if existing == desired {
+			fmt.Printf("# GOOD: %q\n", existing)
+		} else {
 			fmt.Printf("mv \\\n    %q\\\n    %q\n", existing, desired)
 		}
 	}

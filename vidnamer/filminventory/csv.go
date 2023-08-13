@@ -13,33 +13,36 @@ func CsvToFilm(c FilmCSV) (f Film) {
 
 	// Fix up the SourceSite
 	sourceSite := c.SourceSite
-	if sourceSite == "" {
-		if strings.Contains(c.Filename, "SpankBang") {
-			sourceSite = "SpankBang"
-		} else if strings.Contains(c.Filename, "xvideos") {
-			sourceSite = "xvideos"
-		}
-	}
-	if strings.Contains(strings.ToLower(sourceSite), "spankbang") {
-		sourceSite = "SpankBang"
-	}
-	if strings.Contains(strings.ToLower(sourceSite), "xvideos") {
-		sourceSite = "xvideos"
-	}
+	// if sourceSite == "" {
+	// 	if strings.Contains(c.Filename, "SpankBang") {
+	// 		sourceSite = "SpankBang"
+	// 	} else if strings.Contains(c.Filename, "xvideos") {
+	// 		sourceSite = "xvideos"
+	// 	}
+	// }
+	// if strings.Contains(strings.ToLower(sourceSite), "spankbang") {
+	// 	sourceSite = "SpankBang"
+	// }
+	// if strings.Contains(strings.ToLower(sourceSite), "xvideos") {
+	// 	sourceSite = "xvideos"
+	// }
 
 	// Fix up titles
 	title := c.Title
-	title = strings.TrimPrefix(title, "SpankBang.com_")
-	title = strings.TrimPrefix(title, "xvideos.com_")
+	// title = strings.TrimPrefix(title, "SpankBang.com_")
+	// title = strings.TrimPrefix(title, "xvideos.com_")
+
+	fileExt := strings.TrimPrefix(c.FileExt, ".")
+	fileExt = strings.TrimPrefix(c.FileExt, ".")
 
 	f.Signature = c.Sha256
 	f.Filename = c.Filename
 	f.OrderPrefix = c.OrderPrefix
-	f.FileExt = c.FileExt
+	f.FileExt = fileExt
 	f.URL = c.URL
 	f.SourceSite = sourceSite
 	f.Title = title
-	f.Author = c.Sha256
+	f.Author = c.CreatorName
 	f.Keywords = strings.Split(c.ContentTags, ",")
 	f.Tags = mkTags(c.MetaTags)
 	f.Duration = parseIntLazy(c.Duration)
@@ -54,7 +57,13 @@ func CsvToFilm(c FilmCSV) (f Film) {
 
 func mkTags(s string) map[string]string {
 	m := map[string]string{}
+	if s == "" {
+		return m
+	}
 	for _, part := range strings.Split(s, ",") {
+		// if part == "" {
+		// 	fmt.Printf("DEBUG: PART IS NIL: %q\n", s)
+		// }
 		m[part] = ""
 	}
 	return m
