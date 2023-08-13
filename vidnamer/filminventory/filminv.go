@@ -28,6 +28,10 @@ type Film struct {
 	Hh         int               `yaml:"hh,omitempty"`
 	Room       string            `yaml:"room,omitempty"`
 	Test       string            `yaml:"test,omitempty"` // Good test of strength? (level)
+	// If it has a single song, list the title here
+	SongTitle string `yaml:"SongTitle,omitempty"`
+	// If known, the filename it downloaded to originally.
+	OrigFName string `yaml:"OriginalFilename,omitempty"`
 }
 
 func FromYamlfile(filename string) (r []Film, err error) {
@@ -40,6 +44,15 @@ func FromYamlfile(filename string) (r []Film, err error) {
 		return nil, fmt.Errorf("can't parse %q: %w", filename, err)
 	}
 	return r, nil
+}
+
+func FromManyFilenames(filenames []string) []Film {
+	var result []Film
+	for _, name := range filenames {
+		film := ParseFilename((name))
+		result = append(result, film)
+	}
+	return result
 }
 
 func ParseFilename(filename string) Film {
