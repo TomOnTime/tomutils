@@ -2,12 +2,12 @@ package main
 
 import (
 	"encoding/csv"
-	"fmt"
 	"io/fs"
 	"log"
 	"os"
 	"strings"
 
+	"github.com/TomOnTime/tomutils/vidnamer/filehash"
 	"github.com/TomOnTime/tomutils/vidnamer/filminventory"
 )
 
@@ -39,7 +39,7 @@ func gatherFilenames(names []string) []string {
 				return nil // Skip "dot files"
 			}
 
-			fmt.Println(path)
+			//fmt.Printf("DEBUG: WalkDir: %q\n", path)
 			result = append(result, path)
 
 			return nil
@@ -57,11 +57,11 @@ func writeHeader(w *csv.Writer, headers []string) {
 	w.Write(headers)
 }
 
-func writeData(w *csv.Writer, filmDB []filminventory.Film) {
+func writeData(w *csv.Writer, filmDB []filminventory.Film, sigDB *filehash.DB) {
 
 	for _, film := range filmDB {
 		//fmt.Printf("% 4d: %q\n", i, film.Title)
-		items := film.ToCSV()
+		items := film.ToCSV(sigDB)
 		//fmt.Printf("DEBUG: items=%+v\n", items)
 		w.Write(items)
 	}
@@ -69,15 +69,21 @@ func writeData(w *csv.Writer, filmDB []filminventory.Film) {
 
 func main() {
 
+	// Read the hash file
+	sigDB, err := filehash.Initialize("../sha256.list")
+	if err != nil {
+		log.Fatalf("Can't filehash.Initalize(): %v", err)
+	}
+
 	w := csv.NewWriter(os.Stdout)
 
-	headers := parseHeaders(`sha256,Title,SourceSite,ContentTags,MetaTags,Duration,hh,PartyScreen,URL,CreatorName,SongTitle,OriginalFilename`)
+	headers := parseHeaders(filminventory.CSVHeader)
 	writeHeader(w, headers)
 
 	fileNames := gatherFilenames(os.Args[1:])
 	//fmt.Printf("DEBUG: fileNames=%+v\n", fileNames)
-	filmDB := filminventory.FromManyFilenames(fileNames)
-	writeData(w, filmDB)
+	filmDB := filminventory.FromManyFilepaths(fileNames, sigDB)
+	writeData(w, filmDB, sigDB)
 
 	// Write any buffered data to the underlying writer (standard output).
 	w.Flush()

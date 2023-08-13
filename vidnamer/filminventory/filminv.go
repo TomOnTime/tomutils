@@ -3,6 +3,7 @@ package filminventory
 import (
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -32,6 +33,30 @@ type Film struct {
 	SongTitle string `yaml:"SongTitle,omitempty"`
 	// If known, the filename it downloaded to originally.
 	OrigFName string `yaml:"OriginalFilename,omitempty"`
+	// Source Path (dir/file.ext): Used to store the path to the filename when importing
+	SourcePath string
+	// Order (prefix for filenames)
+	OrderPrefix string `yaml:"filext"`
+}
+
+var CSVHeader = "sha256,OrderPrefix,Title,SourceSite,ContentTags,MetaTags,Duration,hh,PartyScreen,URL,CreatorName,SongTitle,Filename,FileExt,OriginalFilename"
+
+type FilmCSV struct {
+	Sha256         string `csv:"sha256"`
+	OrderPrefix    string `csv:"Order"`
+	Title          string `csv:"Title"`
+	SourceSite     string `csv:"SourceSite"`
+	ContentTags    string `csv:"ContentTags"`
+	MetaTags       string `csv:"MetaTags"`
+	Duration       string `csv:"Duration"`
+	Hh             string `csv:"hh"`
+	PartyScreen    string `csv:"PartyScreen"`
+	URL            string `csv:"URL"`
+	CreatorName    string `csv:"CreatorName"`
+	SongTitle      string `csv:"SongTitle"`
+	Filename       string `csv:"Filename"`
+	FileExt        string `csv:"FileExt"`
+	DownloadedName string `csv:"DownloadedName"`
 }
 
 func FromYamlfile(filename string) (r []Film, err error) {
@@ -46,10 +71,18 @@ func FromYamlfile(filename string) (r []Film, err error) {
 	return r, nil
 }
 
-func FromManyFilenames(filenames []string) []Film {
+func FromManyFilepaths(filenames []string, sigs *filehash.DB) []Film {
 	var result []Film
 	for _, name := range filenames {
-		film := ParseFilename((name))
+		_, file := filepath.Split(name)
+
+		film := ParseFilename((file))
+		film.SourcePath = name
+		film.Signature = sigs.GetSignature(file)
+		film.Filename = file
+		film.FileExt = filepath.Ext(file)
+		film.FileExt = filepath.Ext(file)
+
 		result = append(result, film)
 	}
 	return result
@@ -78,7 +111,10 @@ func ParseFilename(filename string) Film {
 
 	// "title"
 	title := major[0]
+	origtitle := title
 	title = strings.TrimSpace(title)
+	title = strings.TrimPrefix(title, "SpankBang.com_")
+	title = strings.TrimPrefix(title, "xvideos.com_")
 
 	// "site"
 	var site string
@@ -86,6 +122,14 @@ func ParseFilename(filename string) Film {
 		site = major[1]
 	}
 	site = strings.TrimSpace(site)
+	if site == "" {
+		if strings.Contains(strings.ToLower(origtitle), "spankbang") {
+			site = "SpankBang"
+		}
+		if strings.Contains(strings.ToLower(origtitle), "xvideos") {
+			site = "xvideos"
+		}
+	}
 
 	f := Film{
 		//Signature:    not set by this function

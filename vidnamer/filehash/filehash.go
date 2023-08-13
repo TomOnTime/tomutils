@@ -23,10 +23,11 @@ func FromFile(filename string) (r []Info, err error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		before, after, found := strings.Cut(line, " ")
+		before, after, found := strings.Cut(line, "  ")
 		if !found {
 			fmt.Printf("SKIPPING: %v\n", line)
 		} else {
+			//fmt.Printf("DEBUG: FromFile (%q, %q)\n", before, after)
 			r = append(r, Info{Signature: before, Filename: after})
 		}
 	}
