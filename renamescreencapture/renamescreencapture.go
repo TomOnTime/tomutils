@@ -59,6 +59,7 @@ func main() {
 
 		datePart := file[len(scapFilePrefix) : len(file)-len(ext)]
 
+		datePart = strings.Replace(datePart, ` `, ` `, -1) // change "small space" to "space"
 		t, err := time.Parse("2006-01-02_15.04.05", datePart)
 		if err == nil {
 			fmt.Printf("Skipping %v: %s (already converted)\n", i, arg)
